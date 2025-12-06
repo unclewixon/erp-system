@@ -483,7 +483,7 @@ const workflowCategorySchema = new mongoose.Schema({
 
 workflowCategorySchema.index({ tenant: 1, code: 1 }, { unique: true });
 
-export const WorkflowTemplate = mongoose.model('WorkflowTemplate', workflowTemplateSchema);
+export const WorkflowTemplate = mongoose.model('WorkflowEngineTemplate', workflowTemplateSchema);
 export const WorkflowInstance = mongoose.model('WorkflowInstance', workflowInstanceSchema);
 export const ApprovalDelegation = mongoose.model('ApprovalDelegation', approvalDelegationSchema);
 export const ApprovalSubstitute = mongoose.model('ApprovalSubstitute', approvalSubstituteSchema);

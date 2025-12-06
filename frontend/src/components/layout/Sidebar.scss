@@ -1,107 +1,164 @@
-@import '../../styles/variables.scss';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
 
 .sidebar {
   width: $sidebar-width;
+  background: $sidebar-gradient;
+  color: $white;
+  position: fixed;
+  top: 0;
+  left: 0;
   height: 100vh;
-  background: $white;
-  border-right: 1px solid $gray-200;
+  overflow: hidden auto;
+  flex-shrink: 0;
+  z-index: $z-fixed;
+  transition: width 0.3s;
   display: flex;
   flex-direction: column;
-  position: fixed;
-  left: 0;
-  top: 0;
-  z-index: 100;
+
+  @include mobile {
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    box-shadow: var(--shadow-xl);
+
+    &.open {
+      transform: translateX(0);
+    }
+  }
 
   .sidebar-header {
-    padding: 1.25rem;
-    border-bottom: 1px solid $gray-100;
+    padding: 24px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
 
     .logo {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 12px;
+      flex: 1;
 
       .logo-icon {
-        width: 2.25rem;
-        height: 2.25rem;
-        background: linear-gradient(135deg, $primary, $secondary);
-        border-radius: $radius;
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, $primary 0%, $secondary 100%);
         display: flex;
         align-items: center;
         justify-content: center;
-        color: $white;
+        font-size: 16px;
         font-weight: 700;
-        font-size: 0.75rem;
+        flex-shrink: 0;
+        color: $white;
       }
 
       .logo-text {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: $gray-900;
+        font-size: 18px;
+        font-weight: 700;
+        color: $white;
+      }
+    }
+
+    .theme-toggle {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: $white;
+      cursor: pointer;
+      font-size: 18px;
+      transition: all 0.2s;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      svg {
+        width: 20px;
+        height: 20px;
       }
     }
   }
 
   .tenant-info {
-    padding: 1rem 1.25rem;
-    background: $gray-50;
-    border-bottom: 1px solid $gray-100;
+    padding: 16px 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
     .tenant-name {
       font-weight: 600;
-      color: $gray-900;
-      font-size: 0.875rem;
+      color: $white;
+      font-size: $text-sm;
     }
 
     .tenant-plan {
-      font-size: 0.75rem;
-      color: $gray-500;
+      font-size: $text-xs;
+      color: $primary-light;
       text-transform: capitalize;
+      margin-top: 2px;
     }
   }
 
   .sidebar-nav {
+    padding: 20px 0;
     flex: 1;
-    padding: 1rem 0.75rem;
     overflow-y: auto;
 
     .nav-item {
+      width: 100%;
+      padding: 12px 20px;
+      background: transparent;
+      border: none;
+      border-left: 4px solid transparent;
+      color: $white;
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      padding: 0.75rem 1rem;
-      border-radius: $radius;
-      color: $gray-600;
-      font-size: 0.875rem;
+      gap: 12px;
+      cursor: pointer;
+      font-size: 14px;
       font-weight: 500;
-      transition: all $transition;
-      margin-bottom: 0.25rem;
+      transition: all 0.2s;
+      text-align: left;
       text-decoration: none;
+      justify-content: flex-start;
 
       &:hover {
-        background: $gray-50;
-        color: $gray-900;
+        background: rgba(255, 255, 255, 0.05);
         text-decoration: none;
       }
 
       &.active {
-        background: rgba($primary, 0.1);
-        color: $primary;
+        background: rgba($primary, 0.2);
+        border-left-color: $primary;
 
         .nav-icon {
-          color: $primary;
+          opacity: 1;
         }
       }
 
       .nav-icon {
-        font-size: 1.25rem;
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+        opacity: 0.7;
+        font-size: 20px;
+      }
+
+      .nav-label {
+        font-size: 14px;
+        font-weight: 500;
       }
     }
   }
 
   .sidebar-footer {
-    padding: 1rem 1.25rem;
-    border-top: 1px solid $gray-100;
+    padding: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -109,52 +166,52 @@
     .user-info {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 12px;
 
       .user-avatar {
-        width: 2.25rem;
-        height: 2.25rem;
-        background: linear-gradient(135deg, $primary, $secondary);
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, $primary 0%, $secondary 100%);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         color: $white;
         font-weight: 600;
-        font-size: 0.75rem;
+        font-size: $text-xs;
       }
 
       .user-details {
         .user-name {
           font-weight: 600;
-          font-size: 0.875rem;
-          color: $gray-900;
+          font-size: $text-sm;
+          color: $white;
         }
 
         .user-role {
-          font-size: 0.75rem;
-          color: $gray-500;
+          font-size: $text-xs;
+          color: $primary-light;
           text-transform: capitalize;
         }
       }
     }
 
     .logout-btn {
-      width: 2rem;
-      height: 2rem;
-      border-radius: $radius;
-      border: none;
-      background: $gray-100;
-      color: $gray-600;
+      width: 36px;
+      height: 36px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.125rem;
-      transition: all $transition;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: $white;
+      cursor: pointer;
+      font-size: 18px;
+      transition: all 0.2s;
 
       &:hover {
-        background: $danger;
-        color: $white;
+        background: rgba($error, 0.2);
+        border-color: rgba($error, 0.3);
       }
     }
   }

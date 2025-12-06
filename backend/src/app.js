@@ -44,6 +44,7 @@ import {
   approvalRoutes,
   taskManagementRoutes,
   administrationRoutes,
+  adminRoutes,
 } from './routes/index.js';
 
 // Load env vars
@@ -70,10 +71,10 @@ app.set('io', io);
 // Security middleware
 app.use(helmet());
 
-// Rate limiting
+// Rate limiting - more lenient in development
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: process.env.NODE_ENV === 'development' ? 1000 : 100,
   message: {
     success: false,
     message: 'Too many requests, please try again later.',
@@ -130,6 +131,7 @@ app.use('/api/workflow-engine', workflowEngineRoutes);
 app.use('/api/approvals', approvalRoutes);
 app.use('/api/task-management', taskManagementRoutes);
 app.use('/api/administration', administrationRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

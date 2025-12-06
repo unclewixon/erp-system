@@ -52,3 +52,6 @@ export { default as taskManagementRoutes } from './taskManagement.js';
 
 // Administration
 export { default as administrationRoutes } from './administration.js';
+
+// Super Admin
+export { default as adminRoutes } from './admin.js';

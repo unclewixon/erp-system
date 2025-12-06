@@ -1,23 +1,58 @@
-@import '../../styles/variables.scss';
+@use '../../styles/variables' as *;
+@use '../../styles/mixins' as *;
 
 .layout {
   display: flex;
   min-height: 100vh;
 
+  .mobile-menu-btn {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    background: $primary;
+    color: white;
+    border: none;
+    box-shadow: var(--shadow-lg);
+    z-index: 1001;
+    cursor: pointer;
+    @include flex-center;
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    @include mobile {
+      display: flex;
+    }
+  }
+
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+
+    @include mobile {
+      display: block;
+    }
+  }
+
   .main-content {
     flex: 1;
     margin-left: $sidebar-width;
-    padding: 1.5rem 2rem;
-    background: $gray-50;
+    padding: $spacing-xl;
+    background: var(--bg-primary);
     min-height: 100vh;
-  }
-}
 
-@media (max-width: $breakpoint-lg) {
-  .layout {
-    .main-content {
+    @include mobile {
       margin-left: 0;
-      padding: 1rem;
+      padding: $spacing-md;
     }
   }
 }

@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Layout from './components/layout/Layout';
 import LoadingSpinner from './components/common/LoadingSpinner';
 
@@ -15,9 +16,19 @@ import Designations from './pages/organization/Designations';
 import Attendance from './pages/attendance/Attendance';
 import Leaves from './pages/leaves/Leaves';
 import Payroll from './pages/payroll/Payroll';
+import Accounting from './pages/accounting/Accounting';
+import Inventory from './pages/inventory/Inventory';
+import Procurement from './pages/procurement/Procurement';
 import Recruitment from './pages/recruitment/Recruitment';
 import Performance from './pages/performance/Performance';
 import Training from './pages/training/Training';
+import Tenants from './pages/admin/Tenants';
+import Analytics from './pages/admin/Analytics';
+import Settings from './pages/settings/Settings';
+import Communications from './pages/communications/Communications';
+import Assets from './pages/assets/Assets';
+import Tasks from './pages/tasks/Tasks';
+import Finance from './pages/finance/Finance';
 
 import './styles/global.scss';
 
@@ -90,10 +101,19 @@ const AppRoutes = () => {
         <Route path="attendance" element={<Attendance />} />
         <Route path="leaves" element={<Leaves />} />
         <Route path="payroll" element={<Payroll />} />
+        <Route path="accounting" element={<Accounting />} />
+        <Route path="inventory" element={<Inventory />} />
+        <Route path="procurement" element={<Procurement />} />
         <Route path="recruitment" element={<Recruitment />} />
         <Route path="performance" element={<Performance />} />
         <Route path="training" element={<Training />} />
-        <Route path="settings" element={<div className="card"><h2>Settings</h2><p>Coming soon...</p></div>} />
+        <Route path="communications" element={<Communications />} />
+        <Route path="assets" element={<Assets />} />
+        <Route path="tasks" element={<Tasks />} />
+        <Route path="finance" element={<Finance />} />
+        <Route path="tenants" element={<Tenants />} />
+        <Route path="analytics" element={<Analytics />} />
+        <Route path="settings" element={<Settings />} />
       </Route>
 
       {/* Catch all */}
@@ -105,29 +125,31 @@ const AppRoutes = () => {
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: '#333',
-              color: '#fff',
-            },
-            success: {
+      <ThemeProvider>
+        <AuthProvider>
+          <AppRoutes />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
               style: {
-                background: '#10b981',
+                background: '#333',
+                color: '#fff',
               },
-            },
-            error: {
-              style: {
-                background: '#ef4444',
+              success: {
+                style: {
+                  background: '#10b981',
+                },
               },
-            },
-          }}
-        />
-      </AuthProvider>
+              error: {
+                style: {
+                  background: '#ef4444',
+                },
+              },
+            }}
+          />
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

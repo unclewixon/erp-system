@@ -874,7 +874,7 @@ taskAutomationSchema.index({ tenant: 1, isActive: 1 });
 
 export const TaskProject = mongoose.model('TaskProject', taskProjectSchema);
 export const TaskLabel = mongoose.model('TaskLabel', taskLabelSchema);
-export const Task = mongoose.model('Task', taskSchema);
+export const Task = mongoose.model('TaskEnhanced', taskSchema);
 export const TaskComment = mongoose.model('TaskComment', taskCommentSchema);
 export const TaskBoard = mongoose.model('TaskBoard', taskBoardSchema);
 export const TaskTemplate = mongoose.model('TaskTemplate', taskTemplateSchema);

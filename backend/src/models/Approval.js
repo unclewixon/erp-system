@@ -797,7 +797,7 @@ const approvalReminderSchema = new mongoose.Schema(
 approvalReminderSchema.index({ tenant: 1, status: 1, scheduledFor: 1 });
 
 export const ApprovalChain = mongoose.model('ApprovalChain', approvalChainSchema);
-export const ApprovalRequest = mongoose.model('ApprovalRequest', approvalRequestSchema);
+export const ApprovalRequest = mongoose.model('ApprovalRequestV2', approvalRequestSchema);
 export const DelegationHistory = mongoose.model('DelegationHistory', delegationHistorySchema);
 export const ApprovalPolicy = mongoose.model('ApprovalPolicy', approvalPolicySchema);
 export const ApprovalLimit = mongoose.model('ApprovalLimit', approvalLimitSchema);

@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import {
   HiOutlineHome,
   HiOutlineUsers,
@@ -16,11 +17,21 @@ import {
   HiOutlineClipboardList,
   HiOutlineFlag,
   HiOutlineAcademicCap,
+  HiOutlineCalculator,
+  HiOutlineMoon,
+  HiOutlineSun,
+  HiOutlineCube,
+  HiOutlineShoppingCart,
+  HiOutlineSpeakerphone,
+  HiOutlineDesktopComputer,
+  HiOutlineCurrencyDollar,
+  HiOutlineCheckCircle,
 } from 'react-icons/hi';
 import './Sidebar.scss';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const { user, tenant, logout, isSuperAdmin } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
 
   const menuItems = isSuperAdmin
     ? [
@@ -35,9 +46,16 @@ const Sidebar = () => {
         { path: '/attendance', icon: HiOutlineClock, label: 'Attendance' },
         { path: '/leaves', icon: HiOutlineCalendar, label: 'Leave Management' },
         { path: '/payroll', icon: HiOutlineCash, label: 'Payroll' },
+        { path: '/accounting', icon: HiOutlineCalculator, label: 'Accounting' },
+        { path: '/finance', icon: HiOutlineCurrencyDollar, label: 'Finance' },
+        { path: '/inventory', icon: HiOutlineCube, label: 'Inventory' },
+        { path: '/assets', icon: HiOutlineDesktopComputer, label: 'Assets' },
+        { path: '/procurement', icon: HiOutlineShoppingCart, label: 'Procurement' },
         { path: '/recruitment', icon: HiOutlineClipboardList, label: 'Recruitment' },
         { path: '/performance', icon: HiOutlineFlag, label: 'Performance' },
         { path: '/training', icon: HiOutlineAcademicCap, label: 'Training' },
+        { path: '/tasks', icon: HiOutlineCheckCircle, label: 'Tasks' },
+        { path: '/communications', icon: HiOutlineSpeakerphone, label: 'Communications' },
         { path: '/departments', icon: HiOutlineUserGroup, label: 'Departments' },
         { path: '/designations', icon: HiOutlineBriefcase, label: 'Designations' },
         { path: '/branches', icon: HiOutlineOfficeBuilding, label: 'Branches' },
@@ -45,12 +63,15 @@ const Sidebar = () => {
       ];
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-header">
         <div className="logo">
           <span className="logo-icon">ERP</span>
           <span className="logo-text">HR Manager</span>
         </div>
+        <button className="theme-toggle" onClick={toggleTheme} title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}>
+          {isDark ? <HiOutlineSun /> : <HiOutlineMoon />}
+        </button>
       </div>
 
       {tenant && (
@@ -66,6 +87,7 @@ const Sidebar = () => {
             key={item.path}
             to={item.path}
             className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+            onClick={onClose}
           >
             <item.icon className="nav-icon" />
             <span className="nav-label">{item.label}</span>

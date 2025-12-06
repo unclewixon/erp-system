@@ -1,0 +1,247 @@
+// ============================================
+// ERP Design System - Variables
+// Sharp UI (no border-radius), Montserrat font
+// Based on nkaranova design
+// ============================================
+
+// Colors - Brand palette
+$primary: #8b5cf6;
+$primary-light: #a5b4fc;
+$primary-dark: #7c3aed;
+
+$secondary: #6366f1;
+$secondary-light: #818cf8;
+$secondary-dark: #4f46e5;
+
+// Status Colors
+$success: #10b981;
+$success-light: #d1fae5;
+$success-dark: #047857;
+
+$warning: #f59e0b;
+$warning-light: #fef3c7;
+$warning-dark: #d97706;
+
+$error: #ef4444;
+$error-light: #fee2e2;
+$error-dark: #dc2626;
+
+$danger: $error;
+
+$info: #3b82f6;
+$info-light: #dbeafe;
+$info-dark: #1d4ed8;
+
+// Neutrals
+$white: #ffffff;
+$gray-50: #f9fafb;
+$gray-100: #f3f4f6;
+$gray-200: #e5e7eb;
+$gray-300: #d1d5db;
+$gray-400: #9ca3af;
+$gray-500: #6b7280;
+$gray-600: #4b5563;
+$gray-700: #374151;
+$gray-800: #1f2937;
+$gray-900: #111827;
+$black: #000000;
+
+// Dark mode palette
+$dark-bg-primary: #0f172a;
+$dark-bg-secondary: #1e293b;
+$dark-bg-tertiary: #334155;
+$dark-bg-quaternary: #475569;
+
+// Text colors (light mode defaults)
+$text-primary: $gray-900;
+$text-secondary: $gray-700;
+$text-tertiary: $gray-500;
+$text-muted: $gray-400;
+$text-inverse: $white;
+
+// Background colors (light mode defaults)
+$bg-primary: $gray-50;
+$bg-secondary: $white;
+$bg-tertiary: $gray-100;
+
+// Border colors
+$border-color: $gray-200;
+$border-secondary: $gray-300;
+
+// Sidebar gradient - Indigo/Purple theme (ERP style)
+$sidebar-gradient: linear-gradient(rgb(30, 27, 75) 0%, rgb(49, 46, 129) 100%);
+$sidebar-width: 280px;
+$sidebar-collapsed-width: 80px;
+
+// Fonts - Montserrat
+$font-primary: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+$font-display: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+
+// Font sizes (slightly reduced for cleaner look)
+$text-xs: 0.7rem;
+$text-sm: 0.8125rem;
+$text-base: 0.9375rem;
+$text-lg: 1rem;
+$text-xl: 1.125rem;
+$text-2xl: 1.25rem;
+$text-3xl: 1.5rem;
+$text-4xl: 1.875rem;
+$text-5xl: 2.25rem;
+
+// Font weights
+$font-light: 300;
+$font-regular: 400;
+$font-medium: 500;
+$font-semibold: 600;
+$font-bold: 700;
+$font-extrabold: 800;
+
+// Spacing (tightened for cleaner layout)
+$spacing-xs: 0.25rem;
+$spacing-sm: 0.375rem;
+$spacing-md: 0.75rem;
+$spacing-lg: 1rem;
+$spacing-xl: 1.5rem;
+$spacing-2xl: 2rem;
+$spacing-3xl: 3rem;
+
+// Border radius - Sharp UI (set to 0)
+$radius-none: 0;
+$radius-sm: 0;
+$radius: 0;
+$radius-md: 0;
+$radius-lg: 0;
+$radius-xl: 0;
+$radius-2xl: 0;
+$radius-full: 0;
+
+// Shadows
+$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+
+// Transitions
+$transition-fast: 0.15s ease;
+$transition: 0.2s ease;
+$transition-base: 0.3s ease;
+$transition-slow: 0.5s ease;
+
+// Breakpoints
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+$breakpoint-2xl: 1536px;
+
+// Container (slightly narrower for focused layout)
+$container-max: 1200px;
+$container-padding: $spacing-md;
+
+// Z-index
+$z-dropdown: 100;
+$z-sticky: 200;
+$z-fixed: 300;
+$z-modal-backdrop: 400;
+$z-modal: 500;
+$z-popover: 600;
+$z-tooltip: 700;
+$z-toast: 999999;
+
+// ============================================
+// CSS Custom Properties (Light Mode)
+// ============================================
+:root {
+  // Background Colors
+  --bg-primary: #{$gray-50};
+  --bg-secondary: #{$white};
+  --bg-tertiary: #{$gray-100};
+  --bg-quaternary: #{$gray-200};
+  --bg-hover: #{$gray-100};
+
+  // Text Colors
+  --text-primary: #{$gray-900};
+  --text-secondary: #{$gray-700};
+  --text-tertiary: #{$gray-500};
+  --text-muted: #{$gray-400};
+  --text-placeholder: #{$gray-400};
+  --text-inverse: #{$white};
+
+  // Border Colors
+  --border-color: #{$gray-200};
+  --border-secondary: #{$gray-300};
+
+  // Shadows
+  --shadow-sm: #{$shadow-sm};
+  --shadow-md: #{$shadow-md};
+  --shadow-lg: #{$shadow-lg};
+  --shadow-xl: #{$shadow-xl};
+
+  // Brand Colors
+  --brand-primary: #{$primary};
+  --brand-secondary: #{$secondary};
+  --brand-tertiary: #{$primary-light};
+  --brand-hover: #{$primary-dark};
+
+  // Component-specific
+  --card-bg: #{$white};
+  --input-bg: #{$white};
+  --header-bg: #{$white};
+  --sidebar-bg: #{$sidebar-gradient};
+
+  // Status colors
+  --success: #{$success};
+  --success-light: #{$success-light};
+  --success-dark: #{$success-dark};
+  --warning: #{$warning};
+  --warning-light: #{$warning-light};
+  --warning-dark: #{$warning-dark};
+  --error: #{$error};
+  --error-light: #{$error-light};
+  --error-dark: #{$error-dark};
+  --info: #{$info};
+  --info-light: #{$info-light};
+  --info-dark: #{$info-dark};
+}
+
+// ============================================
+// Dark Mode Custom Properties
+// ============================================
+[data-theme="dark"] {
+  // Background Colors
+  --bg-primary: #{$dark-bg-primary};
+  --bg-secondary: #{$dark-bg-secondary};
+  --bg-tertiary: #{$dark-bg-tertiary};
+  --bg-quaternary: #{$dark-bg-quaternary};
+  --bg-hover: #{$dark-bg-tertiary};
+
+  // Text Colors
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  --text-muted: #64748b;
+  --text-placeholder: #64748b;
+  --text-inverse: #{$gray-900};
+
+  // Border Colors
+  --border-color: #{$dark-bg-tertiary};
+  --border-secondary: #{$dark-bg-quaternary};
+
+  // Shadows (darker in dark mode)
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+
+  // Component-specific
+  --card-bg: #{$dark-bg-secondary};
+  --input-bg: #{$dark-bg-secondary};
+  --header-bg: #{$dark-bg-secondary};
+
+  // Adjust status light colors for dark mode
+  --success-light: rgba(16, 185, 129, 0.15);
+  --warning-light: rgba(245, 158, 11, 0.15);
+  --error-light: rgba(239, 68, 68, 0.15);
+  --info-light: rgba(59, 130, 246, 0.15);
+}
