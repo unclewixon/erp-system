@@ -1,0 +1,231 @@
+@import '../../styles/variables.scss';
+
+.recruitment-page {
+  .tabs {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid $gray-200;
+
+    .tab {
+      padding: 0.75rem 1.25rem;
+      border: none;
+      background: none;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: $gray-500;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      cursor: pointer;
+
+      &:hover {
+        color: $gray-700;
+      }
+
+      &.active {
+        color: $primary;
+        border-bottom-color: $primary;
+      }
+    }
+  }
+
+  .jobs-list {
+    padding: 1rem;
+  }
+
+  .job-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border: 1px solid $gray-200;
+    border-radius: $radius;
+    padding: 1.25rem;
+    margin-bottom: 0.75rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .job-main {
+      flex: 1;
+
+      .job-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 0.5rem;
+
+        h3 {
+          font-size: 1rem;
+          font-weight: 600;
+          margin: 0;
+        }
+
+        .job-badges {
+          display: flex;
+          gap: 0.5rem;
+        }
+      }
+
+      .job-meta {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.8125rem;
+        color: $gray-500;
+        margin-bottom: 0.5rem;
+
+        span::after {
+          content: '•';
+          margin-left: 1rem;
+          color: $gray-300;
+        }
+
+        span:last-child::after {
+          content: '';
+        }
+      }
+
+      .job-stats {
+        display: flex;
+        gap: 2rem;
+        font-size: 0.8125rem;
+        color: $gray-600;
+
+        strong {
+          color: $gray-900;
+        }
+      }
+    }
+
+    .job-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+  }
+
+  .interviews-list {
+    padding: 1rem;
+  }
+
+  .interview-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid $gray-200;
+    border-radius: $radius;
+    margin-bottom: 0.75rem;
+
+    .interview-date {
+      width: 50px;
+      text-align: center;
+      background: $gray-50;
+      padding: 0.5rem;
+      border-radius: $radius;
+
+      .day {
+        display: block;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: $gray-900;
+      }
+
+      .month {
+        display: block;
+        font-size: 0.75rem;
+        color: $gray-500;
+        text-transform: uppercase;
+      }
+    }
+
+    .interview-details {
+      flex: 1;
+
+      h4 {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        margin: 0 0 0.25rem 0;
+      }
+
+      .interview-meta {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.8125rem;
+        color: $gray-500;
+      }
+    }
+  }
+
+  .application-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+
+    h3 {
+      margin: 0;
+    }
+  }
+
+  .application-contact {
+    margin-bottom: 1rem;
+    color: $gray-600;
+
+    p {
+      margin: 0.25rem 0;
+    }
+  }
+
+  .application-section {
+    margin-bottom: 1rem;
+
+    h4 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: $gray-500;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      margin: 0;
+      color: $gray-700;
+    }
+  }
+
+  .experience-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid $gray-100;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .application-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid $gray-200;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .text-muted {
+    color: $gray-500;
+  }
+
+  .small {
+    font-size: 0.75rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: $gray-500;
+  }
+}

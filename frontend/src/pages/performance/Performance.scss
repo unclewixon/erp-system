@@ -1,0 +1,239 @@
+@import '../../styles/variables.scss';
+
+.performance-page {
+  .cycle-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, $primary, $secondary);
+    color: $white;
+    padding: 1rem 1.5rem;
+    border-radius: $radius-lg;
+    margin-bottom: 1.5rem;
+
+    .cycle-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+
+      svg {
+        font-size: 1.5rem;
+        opacity: 0.9;
+      }
+
+      strong {
+        display: block;
+        font-size: 1rem;
+      }
+
+      span {
+        font-size: 0.8125rem;
+        opacity: 0.9;
+      }
+    }
+  }
+
+  .tabs {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid $gray-200;
+
+    .tab {
+      padding: 0.75rem 1.25rem;
+      border: none;
+      background: none;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: $gray-500;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      cursor: pointer;
+
+      &:hover {
+        color: $gray-700;
+      }
+
+      &.active {
+        color: $primary;
+        border-bottom-color: $primary;
+      }
+    }
+  }
+
+  .goals-list {
+    padding: 1rem;
+  }
+
+  .goal-card {
+    border: 1px solid $gray-200;
+    border-radius: $radius;
+    padding: 1.25rem;
+    margin-bottom: 0.75rem;
+
+    .goal-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+
+      .goal-priority {
+        width: 4px;
+        height: 24px;
+        border-radius: 2px;
+      }
+
+      h4 {
+        flex: 1;
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0;
+      }
+    }
+
+    .goal-description {
+      font-size: 0.875rem;
+      color: $gray-600;
+      margin-bottom: 1rem;
+      padding-left: 16px;
+    }
+
+    .goal-progress {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      padding-left: 16px;
+
+      .progress-bar {
+        flex: 1;
+        height: 8px;
+        background: $gray-100;
+        border-radius: 4px;
+        overflow: hidden;
+
+        .progress-fill {
+          height: 100%;
+          background: linear-gradient(90deg, $primary, $secondary);
+          border-radius: 4px;
+          transition: width 0.3s ease;
+        }
+      }
+
+      .progress-text {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: $gray-700;
+        min-width: 40px;
+      }
+    }
+
+    .goal-meta {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding-left: 16px;
+      margin-bottom: 0.75rem;
+
+      .due-date {
+        font-size: 0.8125rem;
+        color: $gray-500;
+      }
+    }
+
+    .goal-actions {
+      display: flex;
+      gap: 0.5rem;
+      padding-left: 16px;
+    }
+  }
+
+  .reviews-list, .cycles-list {
+    padding: 1rem;
+  }
+
+  .review-card, .cycle-card {
+    border: 1px solid $gray-200;
+    border-radius: $radius;
+    padding: 1.25rem;
+    margin-bottom: 0.75rem;
+
+    .review-header, .cycle-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.75rem;
+
+      h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0 0 0.25rem 0;
+      }
+
+      .review-type {
+        font-size: 0.8125rem;
+        color: $gray-500;
+        text-transform: capitalize;
+      }
+    }
+
+    .review-details {
+      display: flex;
+      gap: 2rem;
+
+      .review-item {
+        span {
+          display: block;
+          font-size: 0.75rem;
+          color: $gray-500;
+          margin-bottom: 0.25rem;
+        }
+
+        strong {
+          font-size: 0.9375rem;
+        }
+
+        .rating {
+          color: $warning;
+        }
+      }
+    }
+
+    .review-actions {
+      margin-top: 1rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid $gray-100;
+    }
+
+    .cycle-meta, .cycle-dates {
+      font-size: 0.8125rem;
+      color: $gray-500;
+
+      span {
+        margin-right: 1rem;
+      }
+    }
+
+    .cycle-dates {
+      margin-top: 0.5rem;
+    }
+  }
+
+  .badge-outline {
+    background: transparent;
+    border: 1px solid $gray-300;
+    color: $gray-600;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: $gray-500;
+  }
+}

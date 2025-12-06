@@ -1,0 +1,275 @@
+@import '../../styles/variables.scss';
+
+.leaves-page {
+  .balances-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .balance-card {
+    background: $white;
+    border-radius: $radius-lg;
+    padding: 1.25rem;
+    border-left: 4px solid $primary;
+    box-shadow: $shadow;
+
+    .balance-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+
+      .balance-type {
+        font-weight: 600;
+        font-size: 0.9375rem;
+      }
+
+      .balance-code {
+        background: $gray-100;
+        padding: 0.25rem 0.5rem;
+        border-radius: $radius-sm;
+        font-size: 0.75rem;
+        color: $gray-500;
+      }
+    }
+
+    .balance-numbers {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+
+      .balance-available {
+        .value {
+          font-size: 2rem;
+          font-weight: 700;
+          color: $gray-900;
+          line-height: 1;
+        }
+
+        .label {
+          display: block;
+          font-size: 0.75rem;
+          color: $gray-500;
+          margin-top: 0.25rem;
+        }
+      }
+
+      .balance-details {
+        text-align: right;
+        font-size: 0.75rem;
+        color: $gray-500;
+
+        span {
+          font-weight: 600;
+          color: $gray-700;
+        }
+      }
+    }
+  }
+
+  .tabs {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid $gray-200;
+    padding-bottom: 0;
+
+    .tab {
+      padding: 0.75rem 1.25rem;
+      border: none;
+      background: none;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: $gray-500;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      &:hover {
+        color: $gray-700;
+      }
+
+      &.active {
+        color: $primary;
+        border-bottom-color: $primary;
+      }
+
+      .badge {
+        font-size: 0.7rem;
+        padding: 0.125rem 0.5rem;
+      }
+    }
+  }
+
+  .tab-content {
+    min-height: 300px;
+  }
+
+  .requests-list {
+    .request-card {
+      border: 1px solid $gray-200;
+      border-radius: $radius;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      &.pending {
+        background: rgba($warning, 0.02);
+        border-color: rgba($warning, 0.2);
+      }
+
+      .request-employee {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+
+        .avatar {
+          width: 2.25rem;
+          height: 2.25rem;
+          background: linear-gradient(135deg, $primary, $secondary);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: $white;
+          font-weight: 600;
+          font-size: 0.75rem;
+        }
+
+        .name {
+          font-weight: 600;
+          color: $gray-900;
+        }
+
+        .id {
+          font-size: 0.75rem;
+          color: $gray-500;
+        }
+      }
+
+      .request-dates {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9375rem;
+        color: $gray-700;
+        margin-bottom: 0.5rem;
+
+        svg {
+          color: $gray-400;
+        }
+
+        .days {
+          color: $gray-500;
+          font-size: 0.8125rem;
+        }
+      }
+
+      .request-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+
+        .leave-type {
+          padding: 0.25rem 0.625rem;
+          border-radius: $radius-sm;
+          font-size: 0.75rem;
+          font-weight: 500;
+        }
+      }
+
+      .request-reason {
+        font-size: 0.875rem;
+        color: $gray-600;
+        margin-bottom: 0.75rem;
+      }
+
+      .request-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+    }
+  }
+
+  .holidays-list {
+    .holiday-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 0;
+      border-bottom: 1px solid $gray-100;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .holiday-date {
+        width: 50px;
+        text-align: center;
+        background: $gray-50;
+        padding: 0.5rem;
+        border-radius: $radius;
+
+        .day {
+          display: block;
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: $gray-900;
+        }
+
+        .month {
+          display: block;
+          font-size: 0.75rem;
+          color: $gray-500;
+          text-transform: uppercase;
+        }
+      }
+
+      .holiday-info {
+        flex: 1;
+
+        .holiday-name {
+          font-weight: 600;
+          color: $gray-900;
+        }
+
+        .holiday-day {
+          font-size: 0.8125rem;
+          color: $gray-500;
+        }
+      }
+    }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: $gray-500;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+
+    input[type="checkbox"] {
+      width: auto;
+    }
+  }
+}

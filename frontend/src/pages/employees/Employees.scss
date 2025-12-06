@@ -1,0 +1,179 @@
+@import '../../styles/variables.scss';
+
+.employees-page {
+  .filters-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+
+    .search-form {
+      display: flex;
+      gap: 0.5rem;
+
+      .search-input {
+        position: relative;
+        display: flex;
+        align-items: center;
+
+        svg {
+          position: absolute;
+          left: 0.75rem;
+          color: $gray-400;
+        }
+
+        input {
+          padding-left: 2.5rem;
+          width: 280px;
+        }
+      }
+    }
+
+    .filters {
+      display: flex;
+      gap: 0.5rem;
+
+      select {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid $gray-300;
+        border-radius: $radius;
+        font-size: 0.875rem;
+        min-width: 150px;
+      }
+    }
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  .employee-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    .avatar {
+      width: 2.25rem;
+      height: 2.25rem;
+      background: linear-gradient(135deg, $primary, $secondary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: $white;
+      font-weight: 600;
+      font-size: 0.75rem;
+    }
+
+    .name {
+      font-weight: 500;
+      color: $gray-900;
+    }
+
+    .email {
+      font-size: 0.75rem;
+      color: $gray-500;
+    }
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 0.25rem;
+
+    .btn-icon {
+      width: 2rem;
+      height: 2rem;
+      border: none;
+      background: $gray-50;
+      border-radius: $radius;
+      color: $gray-600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        background: $gray-100;
+        color: $gray-900;
+      }
+    }
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid $gray-100;
+
+    span {
+      font-size: 0.875rem;
+      color: $gray-500;
+    }
+  }
+}
+
+.employee-details {
+  .detail-header {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid $gray-100;
+    margin-bottom: 1.5rem;
+
+    .avatar-large {
+      width: 4rem;
+      height: 4rem;
+      background: linear-gradient(135deg, $primary, $secondary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: $white;
+      font-weight: 600;
+      font-size: 1.25rem;
+    }
+
+    h2 {
+      font-size: 1.25rem;
+      margin-bottom: 0.25rem;
+    }
+
+    p {
+      color: $gray-500;
+      font-size: 0.875rem;
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+
+    .detail-item {
+      label {
+        display: block;
+        font-size: 0.75rem;
+        color: $gray-500;
+        margin-bottom: 0.25rem;
+      }
+
+      span {
+        font-weight: 500;
+        color: $gray-900;
+        text-transform: capitalize;
+      }
+    }
+  }
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}

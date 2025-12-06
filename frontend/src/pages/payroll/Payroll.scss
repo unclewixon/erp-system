@@ -1,0 +1,166 @@
+@import '../../styles/variables.scss';
+
+.payroll-page {
+  .tabs {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid $gray-200;
+
+    .tab {
+      padding: 0.75rem 1.25rem;
+      border: none;
+      background: none;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: $gray-500;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      cursor: pointer;
+
+      &:hover {
+        color: $gray-700;
+      }
+
+      &.active {
+        color: $primary;
+        border-bottom-color: $primary;
+      }
+    }
+  }
+
+  .grades-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .grade-card {
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: $radius-lg;
+    padding: 1.25rem;
+
+    .grade-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+
+      h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0;
+      }
+
+      .grade-code {
+        background: $gray-100;
+        padding: 0.25rem 0.5rem;
+        border-radius: $radius-sm;
+        font-size: 0.75rem;
+        color: $gray-600;
+      }
+    }
+
+    .grade-level {
+      font-size: 0.8125rem;
+      color: $gray-500;
+      margin-bottom: 0.75rem;
+    }
+
+    .grade-range {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      color: $gray-900;
+      margin-bottom: 0.5rem;
+    }
+
+    .grade-components {
+      font-size: 0.75rem;
+      color: $gray-500;
+    }
+  }
+
+  .payslips-list {
+    padding: 1rem;
+  }
+
+  .payslip-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: $white;
+    border: 1px solid $gray-200;
+    border-radius: $radius;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+
+    .payslip-period {
+      font-weight: 600;
+      color: $gray-900;
+      min-width: 150px;
+    }
+
+    .payslip-details {
+      display: flex;
+      gap: 2rem;
+      flex: 1;
+      justify-content: center;
+
+      .payslip-item {
+        text-align: center;
+
+        span {
+          display: block;
+          font-size: 0.75rem;
+          color: $gray-500;
+          margin-bottom: 0.25rem;
+        }
+
+        strong {
+          font-size: 1rem;
+        }
+
+        &.net strong {
+          font-size: 1.125rem;
+        }
+      }
+    }
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .text-danger {
+    color: $danger;
+  }
+
+  .text-success {
+    color: $success;
+  }
+
+  .text-muted {
+    color: $gray-500;
+  }
+
+  .small {
+    font-size: 0.75rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: $gray-500;
+  }
+}

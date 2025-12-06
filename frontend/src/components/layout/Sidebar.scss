@@ -1,0 +1,161 @@
+@import '../../styles/variables.scss';
+
+.sidebar {
+  width: $sidebar-width;
+  height: 100vh;
+  background: $white;
+  border-right: 1px solid $gray-200;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 100;
+
+  .sidebar-header {
+    padding: 1.25rem;
+    border-bottom: 1px solid $gray-100;
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+
+      .logo-icon {
+        width: 2.25rem;
+        height: 2.25rem;
+        background: linear-gradient(135deg, $primary, $secondary);
+        border-radius: $radius;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: $white;
+        font-weight: 700;
+        font-size: 0.75rem;
+      }
+
+      .logo-text {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: $gray-900;
+      }
+    }
+  }
+
+  .tenant-info {
+    padding: 1rem 1.25rem;
+    background: $gray-50;
+    border-bottom: 1px solid $gray-100;
+
+    .tenant-name {
+      font-weight: 600;
+      color: $gray-900;
+      font-size: 0.875rem;
+    }
+
+    .tenant-plan {
+      font-size: 0.75rem;
+      color: $gray-500;
+      text-transform: capitalize;
+    }
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 1rem 0.75rem;
+    overflow-y: auto;
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: $radius;
+      color: $gray-600;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all $transition;
+      margin-bottom: 0.25rem;
+      text-decoration: none;
+
+      &:hover {
+        background: $gray-50;
+        color: $gray-900;
+        text-decoration: none;
+      }
+
+      &.active {
+        background: rgba($primary, 0.1);
+        color: $primary;
+
+        .nav-icon {
+          color: $primary;
+        }
+      }
+
+      .nav-icon {
+        font-size: 1.25rem;
+      }
+    }
+  }
+
+  .sidebar-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid $gray-100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+
+      .user-avatar {
+        width: 2.25rem;
+        height: 2.25rem;
+        background: linear-gradient(135deg, $primary, $secondary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: $white;
+        font-weight: 600;
+        font-size: 0.75rem;
+      }
+
+      .user-details {
+        .user-name {
+          font-weight: 600;
+          font-size: 0.875rem;
+          color: $gray-900;
+        }
+
+        .user-role {
+          font-size: 0.75rem;
+          color: $gray-500;
+          text-transform: capitalize;
+        }
+      }
+    }
+
+    .logout-btn {
+      width: 2rem;
+      height: 2rem;
+      border-radius: $radius;
+      border: none;
+      background: $gray-100;
+      color: $gray-600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.125rem;
+      transition: all $transition;
+
+      &:hover {
+        background: $danger;
+        color: $white;
+      }
+    }
+  }
+}

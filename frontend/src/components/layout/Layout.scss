@@ -1,0 +1,23 @@
+@import '../../styles/variables.scss';
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+
+  .main-content {
+    flex: 1;
+    margin-left: $sidebar-width;
+    padding: 1.5rem 2rem;
+    background: $gray-50;
+    min-height: 100vh;
+  }
+}
+
+@media (max-width: $breakpoint-lg) {
+  .layout {
+    .main-content {
+      margin-left: 0;
+      padding: 1rem;
+    }
+  }
+}

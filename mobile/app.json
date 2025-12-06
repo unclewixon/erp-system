@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "ERP HR Manager",
+    "slug": "erp-hr-manager",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#3b82f6"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.erp.hrmanager",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "We need your location for geofenced attendance check-in.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "We need your location for geofenced attendance check-in."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#3b82f6"
+      },
+      "package": "com.erp.hrmanager",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
