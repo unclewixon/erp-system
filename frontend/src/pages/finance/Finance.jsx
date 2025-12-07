@@ -23,6 +23,7 @@ const Finance = () => {
   const [bills, setBills] = useState([]);
   const [reimbursements, setReimbursements] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState('invoice');
   const [searchTerm, setSearchTerm] = useState('');
 
   const [stats, setStats] = useState({
@@ -31,6 +32,57 @@ const Finance = () => {
     pendingReimbursements: 0,
     walletBalance: 0,
   });
+
+  const [formData, setFormData] = useState({
+    client: '',
+    vendor: '',
+    amount: '',
+    dueDate: '',
+    description: '',
+    category: '',
+    receipt: null,
+  });
+
+  // Invoice items state for multi-item invoices
+  const [invoiceItems, setInvoiceItems] = useState([
+    { description: '', quantity: 1, unitPrice: '', taxRate: 0, discount: 0 }
+  ]);
+
+  const addInvoiceItem = () => {
+    setInvoiceItems([...invoiceItems, { description: '', quantity: 1, unitPrice: '', taxRate: 0, discount: 0 }]);
+  };
+
+  const removeInvoiceItem = (index) => {
+    if (invoiceItems.length > 1) {
+      setInvoiceItems(invoiceItems.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateInvoiceItem = (index, field, value) => {
+    const updatedItems = invoiceItems.map((item, i) => {
+      if (i === index) {
+        return { ...item, [field]: value };
+      }
+      return item;
+    });
+    setInvoiceItems(updatedItems);
+  };
+
+  const calculateItemAmount = (item) => {
+    const quantity = parseFloat(item.quantity) || 0;
+    const unitPrice = parseFloat(item.unitPrice) || 0;
+    const discount = parseFloat(item.discount) || 0;
+    const taxRate = parseFloat(item.taxRate) || 0;
+    const subtotal = quantity * unitPrice;
+    const discountAmount = subtotal * (discount / 100);
+    const taxableAmount = subtotal - discountAmount;
+    const taxAmount = taxableAmount * (taxRate / 100);
+    return subtotal - discountAmount + taxAmount;
+  };
+
+  const calculateInvoiceTotal = () => {
+    return invoiceItems.reduce((sum, item) => sum + calculateItemAmount(item), 0);
+  };
 
   useEffect(() => {
     fetchFinanceData();
@@ -75,6 +127,99 @@ const Finance = () => {
     }
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (modalType === 'invoice') {
+        // Prepare items with calculated amounts
+        const items = invoiceItems.map(item => {
+          const quantity = parseFloat(item.quantity) || 0;
+          const unitPrice = parseFloat(item.unitPrice) || 0;
+          const discount = parseFloat(item.discount) || 0;
+          const taxRate = parseFloat(item.taxRate) || 0;
+          const subtotal = quantity * unitPrice;
+          const discountAmount = subtotal * (discount / 100);
+          const taxableAmount = subtotal - discountAmount;
+          const taxAmount = taxableAmount * (taxRate / 100);
+          const amount = subtotal - discountAmount + taxAmount;
+
+          return {
+            description: item.description,
+            quantity,
+            unitPrice,
+            amount: subtotal,
+            taxRate,
+            taxAmount,
+            discount: discountAmount,
+          };
+        });
+
+        const subtotal = items.reduce((sum, item) => sum + item.amount, 0);
+        const taxAmount = items.reduce((sum, item) => sum + item.taxAmount, 0);
+        const totalAmount = subtotal + taxAmount;
+
+        await api.post('/invoices', {
+          customer: formData.client, // Using client as customer for now
+          invoiceDate: new Date().toISOString(),
+          dueDate: formData.dueDate,
+          items,
+          subtotal,
+          taxAmount,
+          totalAmount,
+          balanceDue: totalAmount,
+          notes: formData.description,
+          type: 'invoice',
+        });
+        toast.success('Invoice created successfully');
+      } else if (modalType === 'bill') {
+        await api.post('/bills', {
+          vendor: formData.vendor,
+          amount: parseFloat(formData.amount),
+          dueDate: formData.dueDate,
+          description: formData.description,
+          status: 'pending',
+        });
+        toast.success('Bill created successfully');
+      } else if (modalType === 'reimbursement') {
+        await api.post('/reimbursements', {
+          category: formData.category,
+          amount: parseFloat(formData.amount),
+          description: formData.description,
+          status: 'pending',
+        });
+        toast.success('Reimbursement request submitted');
+      } else if (modalType === 'fund') {
+        toast.success(`Wallet funded with ${formatCurrency(parseFloat(formData.amount))}`);
+      } else if (modalType === 'withdraw') {
+        toast.success(`Withdrawal of ${formatCurrency(parseFloat(formData.amount))} initiated`);
+      }
+      setShowModal(false);
+      resetForm();
+      fetchFinanceData();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Operation failed');
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      client: '',
+      vendor: '',
+      amount: '',
+      dueDate: '',
+      description: '',
+      category: '',
+      receipt: null,
+    });
+    setInvoiceItems([{ description: '', quantity: 1, unitPrice: '', taxRate: 0, discount: 0 }]);
+  };
+
+  const openModal = (type) => {
+    resetForm();
+    setModalType(type);
+    setShowModal(true);
+  };
+
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format(amount);
   };
@@ -100,7 +245,7 @@ const Finance = () => {
           <h1>Finance</h1>
           <p>Manage invoices, bills, and reimbursements</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+        <button className="btn btn-primary" onClick={() => openModal(activeTab === 'invoices' ? 'invoice' : activeTab === 'bills' ? 'bill' : 'reimbursement')}>
           <HiOutlinePlus /> New {activeTab === 'invoices' ? 'Invoice' : activeTab === 'bills' ? 'Bill' : 'Entry'}
         </button>
       </div>
@@ -221,7 +366,7 @@ const Finance = () => {
         <div className="card">
           <div className="card-header">
             <h3>Reimbursement Requests</h3>
-            <button className="btn btn-primary btn-sm"><HiOutlinePlus /> Submit Request</button>
+            <button className="btn btn-primary btn-sm" onClick={() => openModal('reimbursement')}><HiOutlinePlus /> Submit Request</button>
           </div>
           <div className="table-container">
             <table>
@@ -262,8 +407,8 @@ const Finance = () => {
               <span className="amount">{formatCurrency(stats.walletBalance)}</span>
             </div>
             <div className="wallet-actions">
-              <button className="btn btn-primary">Fund Wallet</button>
-              <button className="btn btn-outline">Withdraw</button>
+              <button className="btn btn-primary" onClick={() => openModal('fund')}>Fund Wallet</button>
+              <button className="btn btn-outline" onClick={() => openModal('withdraw')}>Withdraw</button>
             </div>
           </div>
           <div className="card">
@@ -272,6 +417,266 @@ const Finance = () => {
               <HiOutlineCurrencyDollar />
               <p>No recent transactions</p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Invoice Modal */}
+      {showModal && modalType === 'invoice' && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal modal-large" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>New Invoice</h2>
+              <button className="close-btn" onClick={() => setShowModal(false)}><HiOutlineX /></button>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div className="modal-body">
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Customer/Client</label>
+                    <input type="text" value={formData.client} onChange={(e) => setFormData({ ...formData, client: e.target.value })} placeholder="Customer name" required />
+                  </div>
+                  <div className="form-group">
+                    <label>Due Date</label>
+                    <input type="date" value={formData.dueDate} onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })} required />
+                  </div>
+                </div>
+
+                {/* Invoice Items Section */}
+                <div className="invoice-items-section">
+                  <div className="section-header">
+                    <h4>Invoice Items</h4>
+                    <button type="button" className="btn-add-item" onClick={addInvoiceItem}>
+                      <HiOutlinePlus /> Add Item
+                    </button>
+                  </div>
+
+                  <div className="items-list">
+                    {invoiceItems.map((item, index) => (
+                      <div key={index} className="invoice-item">
+                        <div className="item-row">
+                          <div className="form-group flex-2">
+                            <label>Description</label>
+                            <input
+                              type="text"
+                              value={item.description}
+                              onChange={(e) => updateInvoiceItem(index, 'description', e.target.value)}
+                              placeholder="Item description"
+                              required
+                            />
+                          </div>
+                          <div className="form-group flex-1">
+                            <label>Qty</label>
+                            <input
+                              type="number"
+                              min="1"
+                              value={item.quantity}
+                              onChange={(e) => updateInvoiceItem(index, 'quantity', e.target.value)}
+                            />
+                          </div>
+                          <div className="form-group flex-1">
+                            <label>Unit Price</label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={item.unitPrice}
+                              onChange={(e) => updateInvoiceItem(index, 'unitPrice', e.target.value)}
+                              placeholder="0.00"
+                              required
+                            />
+                          </div>
+                          <div className="form-group flex-1">
+                            <label>Tax %</label>
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              step="0.1"
+                              value={item.taxRate}
+                              onChange={(e) => updateInvoiceItem(index, 'taxRate', e.target.value)}
+                            />
+                          </div>
+                          <div className="form-group flex-1">
+                            <label>Amount</label>
+                            <span className="amount-display">{formatCurrency(calculateItemAmount(item))}</span>
+                          </div>
+                          {invoiceItems.length > 1 && (
+                            <button
+                              type="button"
+                              className="btn btn-ghost btn-sm btn-remove"
+                              onClick={() => removeInvoiceItem(index)}
+                            >
+                              <HiOutlineX />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="invoice-total">
+                    <span>Total:</span>
+                    <strong>{formatCurrency(calculateInvoiceTotal())}</strong>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Notes (Optional)</label>
+                  <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Additional notes..." rows={2} />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">Create Invoice</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Bill Modal */}
+      {showModal && modalType === 'bill' && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>New Bill</h2>
+              <button className="close-btn" onClick={() => setShowModal(false)}><HiOutlineX /></button>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label>Vendor Name</label>
+                  <input type="text" value={formData.vendor} onChange={(e) => setFormData({ ...formData, vendor: e.target.value })} placeholder="Vendor name" required />
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Amount (NGN)</label>
+                    <input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="0.00" required />
+                  </div>
+                  <div className="form-group">
+                    <label>Due Date</label>
+                    <input type="date" value={formData.dueDate} onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })} required />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Description</label>
+                  <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Bill description..." rows={3} />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">Create Bill</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Reimbursement Modal */}
+      {showModal && modalType === 'reimbursement' && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Submit Reimbursement Request</h2>
+              <button className="close-btn" onClick={() => setShowModal(false)}><HiOutlineX /></button>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label>Category</label>
+                  <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} required>
+                    <option value="">Select category</option>
+                    <option value="Travel">Travel</option>
+                    <option value="Meals">Meals</option>
+                    <option value="Equipment">Equipment</option>
+                    <option value="Training">Training</option>
+                    <option value="Office Supplies">Office Supplies</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Amount (NGN)</label>
+                  <input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="0.00" required />
+                </div>
+                <div className="form-group">
+                  <label>Description</label>
+                  <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Describe the expense..." rows={3} required />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">Submit Request</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Fund Wallet Modal */}
+      {showModal && modalType === 'fund' && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Fund Wallet</h2>
+              <button className="close-btn" onClick={() => setShowModal(false)}><HiOutlineX /></button>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label>Amount (NGN)</label>
+                  <input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="Enter amount" required />
+                </div>
+                <div className="form-group">
+                  <label>Payment Method</label>
+                  <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} required>
+                    <option value="">Select payment method</option>
+                    <option value="bank_transfer">Bank Transfer</option>
+                    <option value="card">Card Payment</option>
+                    <option value="ussd">USSD</option>
+                  </select>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">Fund Wallet</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Withdraw Modal */}
+      {showModal && modalType === 'withdraw' && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Withdraw Funds</h2>
+              <button className="close-btn" onClick={() => setShowModal(false)}><HiOutlineX /></button>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div className="modal-body">
+                <div className="wallet-balance-display">
+                  <span>Available Balance:</span>
+                  <strong>{formatCurrency(stats.walletBalance)}</strong>
+                </div>
+                <div className="form-group">
+                  <label>Amount (NGN)</label>
+                  <input type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} placeholder="Enter amount" max={stats.walletBalance} required />
+                </div>
+                <div className="form-group">
+                  <label>Bank Account</label>
+                  <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} required>
+                    <option value="">Select bank account</option>
+                    <option value="primary">Primary Account (****1234)</option>
+                    <option value="secondary">Secondary Account (****5678)</option>
+                  </select>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">Withdraw</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

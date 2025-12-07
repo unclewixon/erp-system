@@ -1,7 +1,13 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-const API_URL = 'http://localhost:5000/api'; // Change this to your server IP for real device testing
+// Use deployed server URL for production, localhost for development
+const API_URL = __DEV__
+  ? 'http://localhost:5001/api'  // Development
+  : 'http://165.232.32.182/api'; // Production (DigitalOcean)
+
+// For testing on physical device, use your machine's IP or deployed server:
+// const API_URL = 'http://165.232.32.182/api';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -71,6 +77,23 @@ export const leaveAPI = {
   createRequest: (data) => api.post('/leaves/requests', data),
   cancelRequest: (id, data) => api.put(`/leaves/requests/${id}/cancel`, data),
   getHolidays: (params) => api.get('/leaves/holidays', { params }),
+};
+
+// Profile APIs
+export const profileAPI = {
+  getProfile: () => api.get('/auth/me'),
+  updateProfile: (data) => api.put('/auth/profile', data),
+  changePassword: (data) => api.put('/auth/password', data),
+  updateNotificationSettings: (data) => api.put('/auth/notification-settings', data),
+};
+
+// Notification APIs
+export const notificationAPI = {
+  registerDevice: (data) => api.post('/notifications/register-device', data),
+  unregisterDevice: (token) => api.delete(`/notifications/unregister-device/${token}`),
+  getNotifications: (params) => api.get('/notifications', { params }),
+  markAsRead: (id) => api.put(`/notifications/${id}/read`),
+  markAllAsRead: () => api.put('/notifications/read-all'),
 };
 
 export default api;

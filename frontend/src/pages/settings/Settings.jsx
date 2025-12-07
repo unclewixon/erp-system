@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import {
   HiOutlineUser,
   HiOutlineLockClosed,
@@ -6,14 +6,19 @@ import {
   HiOutlineCog,
   HiOutlineMoon,
   HiOutlineSun,
+  HiOutlineOfficeBuilding,
+  HiOutlineUpload,
+  HiOutlineTrash,
 } from 'react-icons/hi';
+import ReactCrop from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import './Settings.scss';
 
 const Settings = () => {
-  const { user, tenant } = useAuth();
+  const { user, tenant, refreshUser, isTenantAdmin, isSuperAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
@@ -39,6 +44,36 @@ const Settings = () => {
     attendanceAlerts: true,
     systemUpdates: false,
   });
+
+  // Organization state
+  const [orgData, setOrgData] = useState({
+    name: tenant?.name || '',
+    email: tenant?.email || '',
+    phone: tenant?.phone || '',
+    industry: tenant?.industry || '',
+    address: {
+      street: tenant?.address?.street || '',
+      city: tenant?.address?.city || '',
+      state: tenant?.address?.state || '',
+      country: tenant?.address?.country || '',
+    },
+  });
+
+  // Logo upload state
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [imageSrc, setImageSrc] = useState(null);
+  const [crop, setCrop] = useState({ unit: '%', width: 50, aspect: 1 });
+  const [completedCrop, setCompletedCrop] = useState(null);
+  const imageRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (tenant?.logo) {
+      const apiUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5001';
+      setLogoPreview(`${apiUrl}${tenant.logo}`);
+    }
+  }, [tenant]);
 
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
@@ -105,12 +140,145 @@ const Settings = () => {
     toast.success(`${newTheme.charAt(0).toUpperCase() + newTheme.slice(1)} mode enabled`);
   };
 
+  // Organization handlers
+  const handleOrgUpdate = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await api.put('/tenants/current', orgData);
+      toast.success('Organization updated successfully');
+      if (refreshUser) refreshUser();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update organization');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Logo upload handlers
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be less than 5MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImageSrc(reader.result);
+      setShowCropModal(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const onImageLoad = useCallback((e) => {
+    imageRef.current = e.currentTarget;
+    const { width, height } = e.currentTarget;
+    const cropSize = Math.min(width, height, 300);
+    const x = (width - cropSize) / 2;
+    const y = (height - cropSize) / 2;
+    setCrop({
+      unit: 'px',
+      width: cropSize,
+      height: cropSize,
+      x,
+      y,
+    });
+  }, []);
+
+  const getCroppedImg = useCallback(() => {
+    return new Promise((resolve) => {
+      const image = imageRef.current;
+      const canvas = document.createElement('canvas');
+      const scaleX = image.naturalWidth / image.width;
+      const scaleY = image.naturalHeight / image.height;
+
+      canvas.width = completedCrop.width;
+      canvas.height = completedCrop.height;
+
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(
+        image,
+        completedCrop.x * scaleX,
+        completedCrop.y * scaleY,
+        completedCrop.width * scaleX,
+        completedCrop.height * scaleY,
+        0,
+        0,
+        completedCrop.width,
+        completedCrop.height
+      );
+
+      canvas.toBlob((blob) => {
+        resolve(blob);
+      }, 'image/jpeg', 0.9);
+    });
+  }, [completedCrop]);
+
+  const handleCropConfirm = async () => {
+    if (!completedCrop) {
+      toast.error('Please select an area to crop');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const croppedBlob = await getCroppedImg();
+      const formData = new FormData();
+      formData.append('logo', croppedBlob, 'logo.jpg');
+
+      const response = await api.post('/tenants/current/logo', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      const apiUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5001';
+      setLogoPreview(`${apiUrl}${response.data.data.logo}?t=${Date.now()}`);
+      setShowCropModal(false);
+      setImageSrc(null);
+      toast.success('Logo uploaded successfully');
+      if (refreshUser) refreshUser();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to upload logo');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteLogo = async () => {
+    if (!confirm('Are you sure you want to delete the logo?')) return;
+
+    setLoading(true);
+    try {
+      await api.delete('/tenants/current/logo');
+      setLogoPreview(null);
+      toast.success('Logo deleted successfully');
+      if (refreshUser) refreshUser();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete logo');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const tabs = [
     { id: 'profile', label: 'Profile', icon: HiOutlineUser },
+    { id: 'organization', label: 'Organization', icon: HiOutlineOfficeBuilding },
     { id: 'password', label: 'Password', icon: HiOutlineLockClosed },
     { id: 'notifications', label: 'Notifications', icon: HiOutlineBell },
     { id: 'preferences', label: 'Preferences', icon: HiOutlineCog },
   ];
+
+  // Check if user is admin using AuthContext helpers or direct role check
+  const isAdmin = isTenantAdmin || isSuperAdmin ||
+    user?.role === 'tenant_admin' || user?.role === 'super_admin' ||
+    user?.role?.toLowerCase()?.includes('admin');
 
   return (
     <div className="settings-page">
@@ -121,16 +289,20 @@ const Settings = () => {
 
       <div className="settings-layout">
         <div className="settings-sidebar">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              <tab.icon />
-              <span>{tab.label}</span>
-            </button>
-          ))}
+          {tabs.map((tab) => {
+            // Only show Organization tab to admins
+            if (tab.id === 'organization' && !isAdmin) return null;
+            return (
+              <button
+                key={tab.id}
+                className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <tab.icon />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
 
         <div className="settings-content">
@@ -196,6 +368,158 @@ const Settings = () => {
                     <strong>Plan:</strong> {tenant.subscription?.plan}
                   </div>
                 )}
+
+                <div className="form-actions">
+                  <button type="submit" className="btn btn-primary" disabled={loading}>
+                    {loading ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Organization Tab */}
+          {activeTab === 'organization' && isAdmin && (
+            <div className="card">
+              <h2>Organization Settings</h2>
+              <p className="description">Manage your organization details and branding.</p>
+
+              {/* Logo Section */}
+              <div className="logo-section">
+                <h3>Organization Logo</h3>
+                <div className="logo-upload-area">
+                  <div className="logo-preview-container">
+                    {logoPreview ? (
+                      <img src={logoPreview} alt="Organization Logo" className="logo-image" />
+                    ) : (
+                      <div className="logo-placeholder">
+                        <HiOutlineOfficeBuilding />
+                        <span>No Logo</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="logo-actions">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileSelect}
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <HiOutlineUpload />
+                      Upload Logo
+                    </button>
+                    {logoPreview && (
+                      <button
+                        type="button"
+                        className="btn btn-danger"
+                        onClick={handleDeleteLogo}
+                        disabled={loading}
+                      >
+                        <HiOutlineTrash />
+                        Remove
+                      </button>
+                    )}
+                    <p className="logo-hint">Recommended: Square image, at least 200x200px. Max 5MB.</p>
+                  </div>
+                </div>
+              </div>
+
+              <form onSubmit={handleOrgUpdate}>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Organization Name</label>
+                    <input
+                      type="text"
+                      value={orgData.name}
+                      onChange={(e) => setOrgData({ ...orgData, name: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Industry</label>
+                    <input
+                      type="text"
+                      value={orgData.industry}
+                      onChange={(e) => setOrgData({ ...orgData, industry: e.target.value })}
+                      placeholder="e.g. Technology, Healthcare"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Email</label>
+                    <input
+                      type="email"
+                      value={orgData.email}
+                      onChange={(e) => setOrgData({ ...orgData, email: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Phone</label>
+                    <input
+                      type="text"
+                      value={orgData.phone}
+                      onChange={(e) => setOrgData({ ...orgData, phone: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <h3 className="section-title">Address</h3>
+
+                <div className="form-group">
+                  <label>Street Address</label>
+                  <input
+                    type="text"
+                    value={orgData.address.street}
+                    onChange={(e) => setOrgData({
+                      ...orgData,
+                      address: { ...orgData.address, street: e.target.value }
+                    })}
+                  />
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>City</label>
+                    <input
+                      type="text"
+                      value={orgData.address.city}
+                      onChange={(e) => setOrgData({
+                        ...orgData,
+                        address: { ...orgData.address, city: e.target.value }
+                      })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>State</label>
+                    <input
+                      type="text"
+                      value={orgData.address.state}
+                      onChange={(e) => setOrgData({
+                        ...orgData,
+                        address: { ...orgData.address, state: e.target.value }
+                      })}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Country</label>
+                  <input
+                    type="text"
+                    value={orgData.address.country}
+                    onChange={(e) => setOrgData({
+                      ...orgData,
+                      address: { ...orgData.address, country: e.target.value }
+                    })}
+                  />
+                </div>
 
                 <div className="form-actions">
                   <button type="submit" className="btn btn-primary" disabled={loading}>
@@ -441,6 +765,65 @@ const Settings = () => {
           )}
         </div>
       </div>
+
+      {/* Crop Modal */}
+      {showCropModal && (
+        <div className="modal-overlay">
+          <div className="modal crop-modal">
+            <div className="modal-header">
+              <h3>Crop Logo</h3>
+              <button
+                className="modal-close"
+                onClick={() => {
+                  setShowCropModal(false);
+                  setImageSrc(null);
+                }}
+              >
+                &times;
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="crop-container">
+                {imageSrc && (
+                  <ReactCrop
+                    crop={crop}
+                    onChange={(c) => setCrop(c)}
+                    onComplete={(c) => setCompletedCrop(c)}
+                    aspect={1}
+                    circularCrop={false}
+                  >
+                    <img
+                      src={imageSrc}
+                      alt="Crop preview"
+                      onLoad={onImageLoad}
+                      style={{ maxWidth: '100%', maxHeight: '400px' }}
+                    />
+                  </ReactCrop>
+                )}
+              </div>
+              <p className="crop-hint">Drag to select the area you want to use as your logo.</p>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowCropModal(false);
+                  setImageSrc(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={handleCropConfirm}
+                disabled={loading}
+              >
+                {loading ? 'Uploading...' : 'Save Logo'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

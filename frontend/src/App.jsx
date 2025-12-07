@@ -24,11 +24,23 @@ import Performance from './pages/performance/Performance';
 import Training from './pages/training/Training';
 import Tenants from './pages/admin/Tenants';
 import Analytics from './pages/admin/Analytics';
+import Plans from './pages/admin/Plans';
+import LiveChats from './pages/admin/LiveChats';
+import WebsiteContent from './pages/admin/WebsiteContent';
+import PaymentSettings from './pages/admin/PaymentSettings';
 import Settings from './pages/settings/Settings';
 import Communications from './pages/communications/Communications';
 import Assets from './pages/assets/Assets';
 import Tasks from './pages/tasks/Tasks';
 import Finance from './pages/finance/Finance';
+
+// Website Pages
+import Home from './pages/website/Home';
+import Contact from './pages/website/Contact';
+
+// Payment Pages
+import Subscription from './pages/payment/Subscription';
+import PaymentCallback from './pages/payment/PaymentCallback';
 
 import './styles/global.scss';
 
@@ -47,16 +59,46 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// Subscription Guard - requires active subscription to access app
+const SubscriptionGuard = ({ children }) => {
+  const { isAuthenticated, loading, hasActiveSubscription, isSuperAdmin } = useAuth();
+
+  if (loading) {
+    return <LoadingSpinner fullScreen />;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Super admins bypass subscription check
+  if (isSuperAdmin) {
+    return children;
+  }
+
+  // Redirect to subscription page if no active subscription
+  if (!hasActiveSubscription()) {
+    return <Navigate to="/app/subscription" replace />;
+  }
+
+  return children;
+};
+
 // Public Route wrapper (redirects to dashboard if authenticated)
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, hasActiveSubscription, isSuperAdmin } = useAuth();
 
   if (loading) {
     return <LoadingSpinner fullScreen />;
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    // If super admin or has subscription, go to dashboard
+    if (isSuperAdmin || hasActiveSubscription()) {
+      return <Navigate to="/app/dashboard" replace />;
+    }
+    // Otherwise, go to subscription page
+    return <Navigate to="/app/subscription" replace />;
   }
 
   return children;
@@ -65,7 +107,15 @@ const PublicRoute = ({ children }) => {
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Public Routes */}
+      {/* Landing Page - Single Page Website */}
+      <Route path="/" element={<Home />} />
+
+      {/* Redirect old About/Pricing/Contact routes to home page sections */}
+      <Route path="/about" element={<Navigate to="/#about" replace />} />
+      <Route path="/pricing" element={<Navigate to="/#features" replace />} />
+      <Route path="/contact" element={<Contact />} />
+
+      {/* Auth Routes */}
       <Route
         path="/login"
         element={
@@ -83,16 +133,26 @@ const AppRoutes = () => {
         }
       />
 
-      {/* Protected Routes */}
+      {/* Subscription Page - accessible without active subscription */}
       <Route
-        path="/"
+        path="/app/subscription"
         element={
           <ProtectedRoute>
-            <Layout />
+            <Subscription />
           </ProtectedRoute>
         }
+      />
+
+      {/* Protected Routes - require subscription */}
+      <Route
+        path="/app"
+        element={
+          <SubscriptionGuard>
+            <Layout />
+          </SubscriptionGuard>
+        }
       >
-        <Route index element={<Navigate to="/dashboard" replace />} />
+        <Route index element={<Navigate to="/app/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="employees" element={<Employees />} />
         <Route path="branches" element={<Branches />} />
@@ -113,11 +173,25 @@ const AppRoutes = () => {
         <Route path="finance" element={<Finance />} />
         <Route path="tenants" element={<Tenants />} />
         <Route path="analytics" element={<Analytics />} />
+        <Route path="plans" element={<Plans />} />
+        <Route path="live-chats" element={<LiveChats />} />
+        <Route path="website-content" element={<WebsiteContent />} />
+        <Route path="payment-settings" element={<PaymentSettings />} />
         <Route path="settings" element={<Settings />} />
       </Route>
 
+      {/* Payment Callback Route (Protected but outside layout) */}
+      <Route
+        path="/payment/callback"
+        element={
+          <ProtectedRoute>
+            <PaymentCallback />
+          </ProtectedRoute>
+        }
+      />
+
       {/* Catch all */}
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };

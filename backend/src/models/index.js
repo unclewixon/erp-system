@@ -65,3 +65,8 @@ export { TaskProject, TaskLabel, Task as TaskEnhanced, TaskComment, TaskBoard, T
 
 // Administration
 export { SystemSetting, NotificationTemplate, NotificationLog, NotificationPreference, InAppNotification, AuditPreference, ScheduledJob, DataExportRequest, IntegrationLog, FeatureFlag, SystemAnnouncement } from './Administration.js';
+
+// Plans & Payments
+export { default as Plan } from './Plan.js';
+export { default as PaymentSettings } from './PaymentSettings.js';
+export { default as Subscription } from './Subscription.js';

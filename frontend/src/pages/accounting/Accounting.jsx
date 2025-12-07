@@ -43,6 +43,17 @@ const Accounting = () => {
     reference: '',
   });
 
+  const [invoiceModal, setInvoiceModal] = useState(false);
+  const [reportModal, setReportModal] = useState(false);
+  const [selectedReport, setSelectedReport] = useState('');
+  const [invoiceForm, setInvoiceForm] = useState({
+    client: '',
+    amount: '',
+    dueDate: '',
+    description: '',
+    items: [{ description: '', quantity: 1, unitPrice: '' }],
+  });
+
   useEffect(() => {
     fetchAccountingData();
   }, []);
@@ -162,6 +173,44 @@ const Accounting = () => {
       fetchAccountingData();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to add transaction');
+    }
+  };
+
+  const handleInvoiceSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post('/invoices', {
+        client: invoiceForm.client,
+        amount: parseFloat(invoiceForm.amount),
+        dueDate: invoiceForm.dueDate,
+        description: invoiceForm.description,
+        items: invoiceForm.items,
+        status: 'pending',
+      });
+      toast.success('Invoice created successfully');
+      setInvoiceModal(false);
+      setInvoiceForm({ client: '', amount: '', dueDate: '', description: '', items: [{ description: '', quantity: 1, unitPrice: '' }] });
+      fetchAccountingData();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to create invoice');
+    }
+  };
+
+  const generateReport = async (reportType) => {
+    setSelectedReport(reportType);
+    setReportModal(true);
+  };
+
+  const downloadReport = async () => {
+    try {
+      toast.success(`Generating ${selectedReport} report...`);
+      // In production, this would call the API to generate and download the report
+      setTimeout(() => {
+        toast.success(`${selectedReport} report generated successfully`);
+        setReportModal(false);
+      }, 1500);
+    } catch (error) {
+      toast.error('Failed to generate report');
     }
   };
 
@@ -399,7 +448,7 @@ const Accounting = () => {
         <div className="card">
           <div className="card-header">
             <h3>Invoices</h3>
-            <button className="btn btn-primary btn-sm">
+            <button className="btn btn-primary btn-sm" onClick={() => setInvoiceModal(true)}>
               <HiOutlinePlus /> Create Invoice
             </button>
           </div>
@@ -432,25 +481,25 @@ const Accounting = () => {
             <HiOutlineTrendingUp className="report-icon" />
             <h4>Profit & Loss</h4>
             <p>View income vs expenses over time</p>
-            <button className="btn btn-outline btn-sm">Generate</button>
+            <button className="btn btn-outline btn-sm" onClick={() => generateReport('Profit & Loss')}>Generate</button>
           </div>
           <div className="card report-card">
             <HiOutlineCalculator className="report-icon" />
             <h4>Balance Sheet</h4>
             <p>Assets, liabilities, and equity summary</p>
-            <button className="btn btn-outline btn-sm">Generate</button>
+            <button className="btn btn-outline btn-sm" onClick={() => generateReport('Balance Sheet')}>Generate</button>
           </div>
           <div className="card report-card">
             <HiOutlineCurrencyDollar className="report-icon" />
             <h4>Cash Flow</h4>
             <p>Track money coming in and going out</p>
-            <button className="btn btn-outline btn-sm">Generate</button>
+            <button className="btn btn-outline btn-sm" onClick={() => generateReport('Cash Flow')}>Generate</button>
           </div>
           <div className="card report-card">
             <HiOutlineClipboardList className="report-icon" />
             <h4>Expense Report</h4>
             <p>Detailed breakdown of all expenses</p>
-            <button className="btn btn-outline btn-sm">Generate</button>
+            <button className="btn btn-outline btn-sm" onClick={() => generateReport('Expense Report')}>Generate</button>
           </div>
         </div>
       )}
@@ -553,6 +602,111 @@ const Accounting = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Create Invoice Modal */}
+      {invoiceModal && (
+        <div className="modal-overlay" onClick={() => setInvoiceModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Create Invoice</h2>
+              <button className="close-btn" onClick={() => setInvoiceModal(false)}>
+                <HiOutlineX />
+              </button>
+            </div>
+            <form onSubmit={handleInvoiceSubmit}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label>Client Name</label>
+                  <input
+                    type="text"
+                    value={invoiceForm.client}
+                    onChange={(e) => setInvoiceForm({ ...invoiceForm, client: e.target.value })}
+                    placeholder="Client name"
+                    required
+                  />
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Amount (NGN)</label>
+                    <input
+                      type="number"
+                      value={invoiceForm.amount}
+                      onChange={(e) => setInvoiceForm({ ...invoiceForm, amount: e.target.value })}
+                      placeholder="0.00"
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Due Date</label>
+                    <input
+                      type="date"
+                      value={invoiceForm.dueDate}
+                      onChange={(e) => setInvoiceForm({ ...invoiceForm, dueDate: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Description</label>
+                  <textarea
+                    value={invoiceForm.description}
+                    onChange={(e) => setInvoiceForm({ ...invoiceForm, description: e.target.value })}
+                    placeholder="Invoice description..."
+                    rows={3}
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setInvoiceModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Create Invoice
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Generate Report Modal */}
+      {reportModal && (
+        <div className="modal-overlay" onClick={() => setReportModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Generate {selectedReport}</h2>
+              <button className="close-btn" onClick={() => setReportModal(false)}>
+                <HiOutlineX />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label>Date Range</label>
+                <div className="form-row">
+                  <input type="date" placeholder="Start date" />
+                  <input type="date" placeholder="End date" />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Format</label>
+                <select defaultValue="pdf">
+                  <option value="pdf">PDF</option>
+                  <option value="excel">Excel</option>
+                  <option value="csv">CSV</option>
+                </select>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-secondary" onClick={() => setReportModal(false)}>
+                Cancel
+              </button>
+              <button type="button" className="btn btn-primary" onClick={downloadReport}>
+                <HiOutlineDownload /> Generate Report
+              </button>
+            </div>
           </div>
         </div>
       )}

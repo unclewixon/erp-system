@@ -3,6 +3,13 @@ import { body, validationResult } from 'express-validator';
 import { Tenant, User, Employee, Branch, Department } from '../models/index.js';
 import { protect, authorize } from '../middleware/auth.js';
 import { ROLES, SUBSCRIPTION_PLANS } from '../config/constants.js';
+import { uploadLogo } from '../middleware/upload.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 
@@ -352,6 +359,94 @@ router.get('/:id/stats', protect, authorize(ROLES.SUPER_ADMIN), async (req, res)
     });
   } catch (error) {
     console.error('Get tenant stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+    });
+  }
+});
+
+// @route   POST /api/tenants/current/logo
+// @desc    Upload organization logo
+// @access  Private/TenantAdmin
+router.post('/current/logo', protect, authorize(ROLES.TENANT_ADMIN), uploadLogo.single('logo'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please upload an image file',
+      });
+    }
+
+    const tenant = await Tenant.findById(req.user.tenant._id);
+
+    if (!tenant) {
+      return res.status(404).json({
+        success: false,
+        message: 'Organization not found',
+      });
+    }
+
+    // Delete old logo if it exists
+    if (tenant.logo) {
+      const oldLogoPath = path.join(__dirname, '../../uploads/logos', path.basename(tenant.logo));
+      if (fs.existsSync(oldLogoPath)) {
+        fs.unlinkSync(oldLogoPath);
+      }
+    }
+
+    // Save new logo path
+    tenant.logo = `/uploads/logos/${req.file.filename}`;
+    await tenant.save();
+
+    res.json({
+      success: true,
+      message: 'Logo uploaded successfully',
+      data: {
+        logo: tenant.logo,
+      },
+    });
+  } catch (error) {
+    console.error('Logo upload error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+    });
+  }
+});
+
+// @route   DELETE /api/tenants/current/logo
+// @desc    Delete organization logo
+// @access  Private/TenantAdmin
+router.delete('/current/logo', protect, authorize(ROLES.TENANT_ADMIN), async (req, res) => {
+  try {
+    const tenant = await Tenant.findById(req.user.tenant._id);
+
+    if (!tenant) {
+      return res.status(404).json({
+        success: false,
+        message: 'Organization not found',
+      });
+    }
+
+    // Delete logo file if it exists
+    if (tenant.logo) {
+      const logoPath = path.join(__dirname, '../../uploads/logos', path.basename(tenant.logo));
+      if (fs.existsSync(logoPath)) {
+        fs.unlinkSync(logoPath);
+      }
+    }
+
+    // Remove logo from tenant
+    tenant.logo = null;
+    await tenant.save();
+
+    res.json({
+      success: true,
+      message: 'Logo deleted successfully',
+    });
+  } catch (error) {
+    console.error('Logo delete error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error',

@@ -117,3 +117,182 @@
     svg { width: 48px; height: 48px; opacity: 0.5; margin-bottom: 0.5rem; }
   }
 }
+
+// Invoice Modal - Multi-item support
+.modal-large {
+  .modal-content {
+    max-width: 800px;
+    width: 95%;
+  }
+}
+
+.invoice-items-section {
+  margin: 1.5rem 0;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  padding: 1rem;
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+
+    h4 {
+      margin: 0;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .btn-add-item {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.5rem 0.875rem;
+      background: var(--brand-primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+
+      svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      &:hover {
+        background: var(--brand-primary-dark, #4f46e5);
+      }
+    }
+  }
+
+  .items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .item-row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-end;
+    padding: 0.75rem;
+    background: var(--bg-primary);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+
+    @media (max-width: 768px) {
+      flex-wrap: wrap;
+    }
+
+    .form-group {
+      margin-bottom: 0;
+
+      label {
+        display: block;
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        margin-bottom: 0.25rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      input {
+        width: 100%;
+        padding: 0.5rem 0.625rem;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        font-size: 0.8125rem;
+        background: var(--bg-primary);
+
+        &:focus {
+          outline: none;
+          border-color: var(--brand-primary);
+          box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+        }
+
+        &[readonly] {
+          background: var(--bg-secondary);
+          color: var(--text-muted);
+        }
+      }
+    }
+
+    .flex-1 {
+      flex: 1;
+      min-width: 80px;
+    }
+
+    .flex-2 {
+      flex: 2;
+      min-width: 150px;
+    }
+
+    .amount-display {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .btn-remove {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+
+      svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      &:hover {
+        background: #ef4444;
+        color: white;
+      }
+
+      &:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+.invoice-total {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  margin-top: 1rem;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+
+  .total-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .total-amount {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--brand-primary);
+  }
+}

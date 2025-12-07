@@ -106,8 +106,25 @@ const Communications = () => {
         await api.post('/communications/announcements', formData);
         toast.success('Announcement created successfully');
       } else if (modalType === 'template') {
-        await api.post('/communications/templates', formData);
+        await api.post('/communications/templates', {
+          name: formData.title,
+          content: formData.content,
+          type: 'email',
+          category: formData.type,
+          status: 'active',
+        });
         toast.success('Template created successfully');
+      } else if (modalType === 'campaign') {
+        await api.post('/communications/campaigns', {
+          name: formData.title,
+          type: 'email',
+          subject: formData.title,
+          content: formData.content,
+          targetAudience: formData.targetAudience,
+          scheduledAt: formData.scheduledAt || null,
+          status: formData.scheduledAt ? 'scheduled' : 'draft',
+        });
+        toast.success('Campaign created successfully');
       }
       setShowModal(false);
       resetForm();
@@ -313,7 +330,7 @@ const Communications = () => {
         <div className="card">
           <div className="card-header">
             <h3>Email Campaigns</h3>
-            <button className="btn btn-primary btn-sm">
+            <button className="btn btn-primary btn-sm" onClick={() => { resetForm(); setModalType('campaign'); setShowModal(true); }}>
               <HiOutlinePlus /> New Campaign
             </button>
           </div>
@@ -451,6 +468,126 @@ const Communications = () => {
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
                 <button type="submit" className="btn btn-primary">Publish Announcement</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Create Template Modal */}
+      {showModal && modalType === 'template' && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Create Template</h2>
+              <button className="close-btn" onClick={() => setShowModal(false)}>
+                <HiOutlineX />
+              </button>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label>Template Name</label>
+                  <input
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="Template name"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Category</label>
+                  <select
+                    value={formData.type}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                  >
+                    <option value="general">General</option>
+                    <option value="onboarding">Onboarding</option>
+                    <option value="hr">HR</option>
+                    <option value="engagement">Engagement</option>
+                    <option value="notification">Notification</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Template Content</label>
+                  <textarea
+                    value={formData.content}
+                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                    placeholder="Enter template content... Use {{name}}, {{date}} as placeholders"
+                    rows={6}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">Create Template</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Create Campaign Modal */}
+      {showModal && modalType === 'campaign' && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>New Campaign</h2>
+              <button className="close-btn" onClick={() => setShowModal(false)}>
+                <HiOutlineX />
+              </button>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label>Campaign Name</label>
+                  <input
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="Campaign name"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Target Audience</label>
+                  <select
+                    value={formData.targetAudience}
+                    onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
+                  >
+                    <option value="all">All Employees</option>
+                    <option value="department">Specific Department</option>
+                    <option value="branch">Specific Branch</option>
+                    <option value="managers">Managers Only</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Schedule (Optional)</label>
+                  <input
+                    type="datetime-local"
+                    value={formData.scheduledAt}
+                    onChange={(e) => setFormData({ ...formData, scheduledAt: e.target.value })}
+                  />
+                  <span className="help-text">Leave empty to send immediately</span>
+                </div>
+                <div className="form-group">
+                  <label>Email Content</label>
+                  <textarea
+                    value={formData.content}
+                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                    placeholder="Enter campaign content..."
+                    rows={6}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">
+                  {formData.scheduledAt ? 'Schedule Campaign' : 'Save as Draft'}
+                </button>
               </div>
             </form>
           </div>

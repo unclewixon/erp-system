@@ -40,9 +40,24 @@ router.post('/register', [
       });
     }
 
+    // Generate slug from organization name
+    const baseSlug = organizationName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+
+    // Check if slug exists and add suffix if needed
+    let slug = baseSlug;
+    let counter = 1;
+    while (await Tenant.findOne({ slug })) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+
     // Create tenant (organization)
     const tenant = await Tenant.create({
       name: organizationName,
+      slug,
       email: email.toLowerCase(),
       phone,
       industry,
@@ -269,6 +284,67 @@ router.put('/password', protect, [
     });
   } catch (error) {
     console.error('Password change error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+    });
+  }
+});
+
+// @route   PUT /api/auth/profile
+// @desc    Update user profile
+// @access  Private
+router.put('/profile', protect, async (req, res) => {
+  try {
+    const { firstName, lastName, phone, address, emergencyContact, emergencyPhone } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        firstName,
+        lastName,
+        phone,
+        address,
+        emergencyContact,
+        emergencyPhone,
+      },
+      { new: true, runValidators: true }
+    ).populate('tenant', 'name slug subscription settings isActive');
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: user,
+    });
+  } catch (error) {
+    console.error('Profile update error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+    });
+  }
+});
+
+// @route   PUT /api/auth/notification-settings
+// @desc    Update notification settings
+// @access  Private
+router.put('/notification-settings', protect, async (req, res) => {
+  try {
+    const notificationSettings = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { notificationSettings },
+      { new: true, runValidators: true }
+    );
+
+    res.json({
+      success: true,
+      message: 'Notification settings updated',
+      data: user.notificationSettings,
+    });
+  } catch (error) {
+    console.error('Notification settings error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error',

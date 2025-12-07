@@ -45,6 +45,10 @@ import {
   taskManagementRoutes,
   administrationRoutes,
   adminRoutes,
+  planRoutes,
+  liveChatRoutes,
+  websiteContentRoutes,
+  paymentRoutes,
 } from './routes/index.js';
 
 // Load env vars
@@ -54,6 +58,10 @@ dotenv.config();
 connectDB();
 
 const app = express();
+
+// Trust proxy for nginx reverse proxy (fixes rate limiter X-Forwarded-For issue)
+app.set('trust proxy', 1);
+
 const httpServer = createServer(app);
 
 // Socket.io setup
@@ -132,6 +140,10 @@ app.use('/api/approvals', approvalRoutes);
 app.use('/api/task-management', taskManagementRoutes);
 app.use('/api/administration', administrationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/plans', planRoutes);
+app.use('/api/live-chat', liveChatRoutes);
+app.use('/api/website-content', websiteContentRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

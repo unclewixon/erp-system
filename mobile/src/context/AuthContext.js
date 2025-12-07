@@ -66,12 +66,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUser = async (userData) => {
+    setUser(prev => ({ ...prev, ...userData }));
+    await SecureStore.setItemAsync('user', JSON.stringify({ ...user, ...userData }));
+  };
+
   const value = {
     user,
     tenant,
     loading,
     login,
     logout,
+    updateUser,
     isAuthenticated: !!user,
   };
 

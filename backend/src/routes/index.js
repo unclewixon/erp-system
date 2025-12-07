@@ -55,3 +55,11 @@ export { default as administrationRoutes } from './administration.js';
 
 // Super Admin
 export { default as adminRoutes } from './admin.js';
+
+// Public Routes (Website)
+export { default as planRoutes } from './plans.js';
+export { default as liveChatRoutes } from './liveChat.js';
+export { default as websiteContentRoutes } from './websiteContent.js';
+
+// Payments & Subscriptions
+export { default as paymentRoutes } from './payments.js';

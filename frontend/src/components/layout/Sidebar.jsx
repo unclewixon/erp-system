@@ -26,6 +26,9 @@ import {
   HiOutlineDesktopComputer,
   HiOutlineCurrencyDollar,
   HiOutlineCheckCircle,
+  HiOutlineCreditCard,
+  HiOutlineChat,
+  HiOutlineDocumentText,
 } from 'react-icons/hi';
 import './Sidebar.scss';
 
@@ -35,31 +38,35 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   const menuItems = isSuperAdmin
     ? [
-        { path: '/dashboard', icon: HiOutlineHome, label: 'Dashboard' },
-        { path: '/tenants', icon: HiOutlineCollection, label: 'Organizations' },
-        { path: '/analytics', icon: HiOutlineChartBar, label: 'Analytics' },
-        { path: '/settings', icon: HiOutlineCog, label: 'Settings' },
+        { path: '/app/dashboard', icon: HiOutlineHome, label: 'Dashboard' },
+        { path: '/app/tenants', icon: HiOutlineCollection, label: 'Organizations' },
+        { path: '/app/analytics', icon: HiOutlineChartBar, label: 'Analytics' },
+        { path: '/app/plans', icon: HiOutlineCreditCard, label: 'Pricing Plans' },
+        { path: '/app/live-chats', icon: HiOutlineChat, label: 'Live Chats' },
+        { path: '/app/website-content', icon: HiOutlineDocumentText, label: 'Website Content' },
+        { path: '/app/payment-settings', icon: HiOutlineCash, label: 'Payment Settings' },
+        { path: '/app/settings', icon: HiOutlineCog, label: 'Settings' },
       ]
     : [
-        { path: '/dashboard', icon: HiOutlineHome, label: 'Dashboard' },
-        { path: '/employees', icon: HiOutlineUsers, label: 'Employees' },
-        { path: '/attendance', icon: HiOutlineClock, label: 'Attendance' },
-        { path: '/leaves', icon: HiOutlineCalendar, label: 'Leave Management' },
-        { path: '/payroll', icon: HiOutlineCash, label: 'Payroll' },
-        { path: '/accounting', icon: HiOutlineCalculator, label: 'Accounting' },
-        { path: '/finance', icon: HiOutlineCurrencyDollar, label: 'Finance' },
-        { path: '/inventory', icon: HiOutlineCube, label: 'Inventory' },
-        { path: '/assets', icon: HiOutlineDesktopComputer, label: 'Assets' },
-        { path: '/procurement', icon: HiOutlineShoppingCart, label: 'Procurement' },
-        { path: '/recruitment', icon: HiOutlineClipboardList, label: 'Recruitment' },
-        { path: '/performance', icon: HiOutlineFlag, label: 'Performance' },
-        { path: '/training', icon: HiOutlineAcademicCap, label: 'Training' },
-        { path: '/tasks', icon: HiOutlineCheckCircle, label: 'Tasks' },
-        { path: '/communications', icon: HiOutlineSpeakerphone, label: 'Communications' },
-        { path: '/departments', icon: HiOutlineUserGroup, label: 'Departments' },
-        { path: '/designations', icon: HiOutlineBriefcase, label: 'Designations' },
-        { path: '/branches', icon: HiOutlineOfficeBuilding, label: 'Branches' },
-        { path: '/settings', icon: HiOutlineCog, label: 'Settings' },
+        { path: '/app/dashboard', icon: HiOutlineHome, label: 'Dashboard' },
+        { path: '/app/employees', icon: HiOutlineUsers, label: 'Employees' },
+        { path: '/app/attendance', icon: HiOutlineClock, label: 'Attendance' },
+        { path: '/app/leaves', icon: HiOutlineCalendar, label: 'Leave Management' },
+        { path: '/app/payroll', icon: HiOutlineCash, label: 'Payroll' },
+        { path: '/app/accounting', icon: HiOutlineCalculator, label: 'Accounting' },
+        { path: '/app/finance', icon: HiOutlineCurrencyDollar, label: 'Finance' },
+        { path: '/app/inventory', icon: HiOutlineCube, label: 'Inventory' },
+        { path: '/app/assets', icon: HiOutlineDesktopComputer, label: 'Assets' },
+        { path: '/app/procurement', icon: HiOutlineShoppingCart, label: 'Procurement' },
+        { path: '/app/recruitment', icon: HiOutlineClipboardList, label: 'Recruitment' },
+        { path: '/app/performance', icon: HiOutlineFlag, label: 'Performance' },
+        { path: '/app/training', icon: HiOutlineAcademicCap, label: 'Training' },
+        { path: '/app/tasks', icon: HiOutlineCheckCircle, label: 'Tasks' },
+        { path: '/app/communications', icon: HiOutlineSpeakerphone, label: 'Communications' },
+        { path: '/app/departments', icon: HiOutlineUserGroup, label: 'Departments' },
+        { path: '/app/designations', icon: HiOutlineBriefcase, label: 'Designations' },
+        { path: '/app/branches', icon: HiOutlineOfficeBuilding, label: 'Branches' },
+        { path: '/app/settings', icon: HiOutlineCog, label: 'Settings' },
       ];
 
   return (

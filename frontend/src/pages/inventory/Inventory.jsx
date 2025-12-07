@@ -50,6 +50,8 @@ const Inventory = () => {
     description: '',
   });
 
+  const [generatingReport, setGeneratingReport] = useState(null);
+
   useEffect(() => {
     fetchInventoryData();
   }, []);
@@ -213,6 +215,220 @@ const Inventory = () => {
     }).format(amount);
   };
 
+  const downloadCSV = (data, filename) => {
+    const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const generateStockValuationReport = async () => {
+    setGeneratingReport('valuation');
+    try {
+      const headers = ['Product Name', 'SKU', 'Category', 'Quantity', 'Cost Price', 'Total Value'];
+      const rows = products.map(p => [
+        p.name,
+        p.sku,
+        p.category,
+        p.quantity,
+        p.costPrice,
+        p.quantity * p.costPrice,
+      ]);
+
+      const totalValue = products.reduce((sum, p) => sum + (p.quantity * p.costPrice), 0);
+      rows.push(['', '', '', '', 'TOTAL', totalValue]);
+
+      const csvContent = [
+        'STOCK VALUATION REPORT',
+        `Generated: ${new Date().toLocaleDateString()}`,
+        '',
+        headers.join(','),
+        ...rows.map(row => row.join(',')),
+      ].join('\n');
+
+      downloadCSV(csvContent, `stock-valuation-${new Date().toISOString().split('T')[0]}.csv`);
+      toast.success('Stock Valuation Report downloaded');
+    } catch (error) {
+      toast.error('Failed to generate report');
+    } finally {
+      setGeneratingReport(null);
+    }
+  };
+
+  const generateLowStockReport = async () => {
+    setGeneratingReport('lowstock');
+    try {
+      const lowStockItems = products.filter(p => p.status === 'low_stock' || p.status === 'out_of_stock');
+      const headers = ['Product Name', 'SKU', 'Category', 'Current Qty', 'Reorder Level', 'Status', 'Shortage'];
+      const rows = lowStockItems.map(p => [
+        p.name,
+        p.sku,
+        p.category,
+        p.quantity,
+        p.reorderLevel,
+        p.status === 'out_of_stock' ? 'Out of Stock' : 'Low Stock',
+        Math.max(0, p.reorderLevel - p.quantity),
+      ]);
+
+      const csvContent = [
+        'LOW STOCK REPORT',
+        `Generated: ${new Date().toLocaleDateString()}`,
+        `Total Items: ${lowStockItems.length}`,
+        '',
+        headers.join(','),
+        ...rows.map(row => row.join(',')),
+      ].join('\n');
+
+      downloadCSV(csvContent, `low-stock-report-${new Date().toISOString().split('T')[0]}.csv`);
+      toast.success('Low Stock Report downloaded');
+    } catch (error) {
+      toast.error('Failed to generate report');
+    } finally {
+      setGeneratingReport(null);
+    }
+  };
+
+  const generateMovementHistoryReport = async () => {
+    setGeneratingReport('movements');
+    try {
+      // Fetch movement history from API
+      const response = await api.get('/inventory/stock/movements');
+      const movements = response.data.data || [];
+
+      if (movements.length === 0) {
+        toast.error('No movement history available');
+        setGeneratingReport(null);
+        return;
+      }
+
+      const headers = ['Date', 'Product', 'Type', 'Quantity', 'Reference', 'Notes'];
+      const rows = movements.map(m => [
+        new Date(m.createdAt).toLocaleDateString(),
+        m.product?.name || 'Unknown',
+        m.type,
+        m.quantity,
+        m.reference || '-',
+        m.notes || '-',
+      ]);
+
+      const csvContent = [
+        'STOCK MOVEMENT HISTORY',
+        `Generated: ${new Date().toLocaleDateString()}`,
+        '',
+        headers.join(','),
+        ...rows.map(row => row.join(',')),
+      ].join('\n');
+
+      downloadCSV(csvContent, `movement-history-${new Date().toISOString().split('T')[0]}.csv`);
+      toast.success('Movement History Report downloaded');
+    } catch (error) {
+      // Generate from current data if API fails
+      const headers = ['Product Name', 'SKU', 'Current Stock', 'Last Updated'];
+      const rows = products.map(p => [
+        p.name,
+        p.sku,
+        p.quantity,
+        new Date().toLocaleDateString(),
+      ]);
+
+      const csvContent = [
+        'STOCK SUMMARY REPORT',
+        `Generated: ${new Date().toLocaleDateString()}`,
+        'Note: Detailed movement history not available',
+        '',
+        headers.join(','),
+        ...rows.map(row => row.join(',')),
+      ].join('\n');
+
+      downloadCSV(csvContent, `stock-summary-${new Date().toISOString().split('T')[0]}.csv`);
+      toast.success('Stock Summary Report downloaded');
+    } finally {
+      setGeneratingReport(null);
+    }
+  };
+
+  const generateCategorySummaryReport = async () => {
+    setGeneratingReport('category');
+    try {
+      const categorySummary = categories.map(cat => {
+        const categoryProducts = products.filter(p => p.category === cat.name);
+        const totalQty = categoryProducts.reduce((sum, p) => sum + p.quantity, 0);
+        const totalValue = categoryProducts.reduce((sum, p) => sum + (p.quantity * p.costPrice), 0);
+        return {
+          name: cat.name,
+          productCount: categoryProducts.length,
+          totalQty,
+          totalValue,
+          lowStockCount: categoryProducts.filter(p => p.status === 'low_stock').length,
+          outOfStockCount: categoryProducts.filter(p => p.status === 'out_of_stock').length,
+        };
+      });
+
+      const headers = ['Category', 'Products', 'Total Qty', 'Total Value', 'Low Stock', 'Out of Stock'];
+      const rows = categorySummary.map(c => [
+        c.name,
+        c.productCount,
+        c.totalQty,
+        c.totalValue,
+        c.lowStockCount,
+        c.outOfStockCount,
+      ]);
+
+      const totals = categorySummary.reduce((acc, c) => ({
+        products: acc.products + c.productCount,
+        qty: acc.qty + c.totalQty,
+        value: acc.value + c.totalValue,
+        lowStock: acc.lowStock + c.lowStockCount,
+        outOfStock: acc.outOfStock + c.outOfStockCount,
+      }), { products: 0, qty: 0, value: 0, lowStock: 0, outOfStock: 0 });
+
+      rows.push(['TOTAL', totals.products, totals.qty, totals.value, totals.lowStock, totals.outOfStock]);
+
+      const csvContent = [
+        'CATEGORY SUMMARY REPORT',
+        `Generated: ${new Date().toLocaleDateString()}`,
+        '',
+        headers.join(','),
+        ...rows.map(row => row.join(',')),
+      ].join('\n');
+
+      downloadCSV(csvContent, `category-summary-${new Date().toISOString().split('T')[0]}.csv`);
+      toast.success('Category Summary Report downloaded');
+    } catch (error) {
+      toast.error('Failed to generate report');
+    } finally {
+      setGeneratingReport(null);
+    }
+  };
+
+  const handleExportProducts = () => {
+    const headers = ['Product Name', 'SKU', 'Category', 'Quantity', 'Reorder Level', 'Unit Price', 'Cost Price', 'Status', 'Location'];
+    const rows = filteredProducts.map(p => [
+      p.name,
+      p.sku,
+      p.category,
+      p.quantity,
+      p.reorderLevel,
+      p.unitPrice,
+      p.costPrice,
+      p.status,
+      p.location,
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(',')),
+    ].join('\n');
+
+    downloadCSV(csvContent, `inventory-export-${new Date().toISOString().split('T')[0]}.csv`);
+    toast.success('Products exported successfully');
+  };
+
   const getStatusBadge = (status) => {
     switch (status) {
       case 'in_stock':
@@ -354,7 +570,7 @@ const Inventory = () => {
                 <option value="low_stock">Low Stock</option>
                 <option value="out_of_stock">Out of Stock</option>
               </select>
-              <button className="btn btn-outline btn-sm">
+              <button className="btn btn-outline btn-sm" onClick={handleExportProducts}>
                 <HiOutlineDownload /> Export
               </button>
             </div>
@@ -465,25 +681,49 @@ const Inventory = () => {
             <HiOutlineChartBar className="report-icon" />
             <h4>Stock Valuation</h4>
             <p>Current value of all inventory items</p>
-            <button className="btn btn-outline btn-sm">Generate</button>
+            <button
+              className="btn btn-outline btn-sm"
+              onClick={generateStockValuationReport}
+              disabled={generatingReport === 'valuation'}
+            >
+              {generatingReport === 'valuation' ? 'Generating...' : 'Generate'}
+            </button>
           </div>
           <div className="card report-card">
             <HiOutlineExclamation className="report-icon" />
             <h4>Low Stock Report</h4>
             <p>Items below reorder level</p>
-            <button className="btn btn-outline btn-sm">Generate</button>
+            <button
+              className="btn btn-outline btn-sm"
+              onClick={generateLowStockReport}
+              disabled={generatingReport === 'lowstock'}
+            >
+              {generatingReport === 'lowstock' ? 'Generating...' : 'Generate'}
+            </button>
           </div>
           <div className="card report-card">
             <HiOutlineTruck className="report-icon" />
             <h4>Movement History</h4>
             <p>All stock ins and outs</p>
-            <button className="btn btn-outline btn-sm">Generate</button>
+            <button
+              className="btn btn-outline btn-sm"
+              onClick={generateMovementHistoryReport}
+              disabled={generatingReport === 'movements'}
+            >
+              {generatingReport === 'movements' ? 'Generating...' : 'Generate'}
+            </button>
           </div>
           <div className="card report-card">
             <HiOutlineCube className="report-icon" />
             <h4>Category Summary</h4>
             <p>Inventory by category</p>
-            <button className="btn btn-outline btn-sm">Generate</button>
+            <button
+              className="btn btn-outline btn-sm"
+              onClick={generateCategorySummaryReport}
+              disabled={generatingReport === 'category'}
+            >
+              {generatingReport === 'category' ? 'Generating...' : 'Generate'}
+            </button>
           </div>
         </div>
       )}
