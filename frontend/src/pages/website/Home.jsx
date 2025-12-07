@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import { gsap } from 'gsap'
 import './Home.css'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api'
@@ -94,7 +95,10 @@ function Home() {
   const [billingPeriod, setBillingPeriod] = useState('monthly')
   const [features, setFeatures] = useState([])
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [isAnimating, setIsAnimating] = useState(false)
+  const titleRef = useRef(null)
+  const cursorRef = useRef(null)
+  const timelineRef = useRef(null)
+  const isFirstLoad = useRef(true)
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -157,44 +161,90 @@ function Home() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Hero slider auto-cycle
-  useEffect(() => {
-    const slides = content.heroSlides || defaults.heroSlides
-    if (slides.length <= 1) return
-
-    const interval = setInterval(() => {
-      setIsAnimating(true)
-      setTimeout(() => {
-        setCurrentSlide((prev) => (prev + 1) % slides.length)
-        setTimeout(() => setIsAnimating(false), 100)
-      }, 500) // Wait for fade out before changing
-    }, 5000) // Change slide every 5 seconds
-
-    return () => clearInterval(interval)
-  }, [content.heroSlides])
-
-  // Get current slide content
-  const getCurrentSlide = () => {
+  // Get displayed slide content
+  const getDisplayedSlide = () => {
     const slides = content.heroSlides || defaults.heroSlides
     return slides[currentSlide] || slides[0]
   }
 
   // Character animation helper - splits text into animated characters
-  const AnimatedText = ({ text, className = '', delay = 0 }) => {
+  const AnimatedText = ({ text, className = '' }) => {
     return (
       <span className={`animated-text ${className}`}>
         {text.split('').map((char, index) => (
-          <span
-            key={index}
-            className="char"
-            style={{ animationDelay: `${delay + index * 0.03}s` }}
-          >
+          <span key={index} className="char">
             {char === ' ' ? '\u00A0' : char}
           </span>
         ))}
       </span>
     )
   }
+
+  // GSAP Timeline for hero animation
+  useEffect(() => {
+    const slides = content.heroSlides || defaults.heroSlides
+    if (slides.length <= 1) return
+    if (!titleRef.current || !cursorRef.current) return
+
+    // Kill any previous timeline
+    if (timelineRef.current) {
+      timelineRef.current.kill()
+    }
+
+    const chars = titleRef.current.querySelectorAll('.char')
+    const cursor = cursorRef.current
+
+    // Reset initial state
+    gsap.set(chars, { opacity: 0 })
+    gsap.set(cursor, { opacity: 1 })
+
+    const tl = gsap.timeline({ delay: isFirstLoad.current ? 1 : 0 }) // 1s delay on initial page load
+    timelineRef.current = tl
+    isFirstLoad.current = false
+
+    // STEP 1: Type text character by character
+    tl.to(chars, {
+      opacity: 1,
+      duration: 0.01,
+      stagger: 0.18,
+      ease: 'none',
+    })
+
+    // STEP 2: Slow blink cursor after typing (for ~12 seconds)
+    tl.to(cursor, {
+      opacity: 0,
+      duration: 0.6,
+      ease: 'none',
+      repeat: 9,
+      yoyo: true,
+    }, '+=1.5')
+
+    // STEP 3: Fade out title
+    tl.to(titleRef.current, {
+      opacity: 0,
+      y: -20,
+      duration: 1.5,
+      ease: 'power2.out',
+    })
+
+    // STEP 4: Hide cursor during transition
+    tl.set(cursor, { opacity: 0 })
+
+    // STEP 5: Wait briefly
+    tl.to({}, { duration: 1 })
+
+    // STEP 6: Change slide
+    tl.call(() => {
+      const nextSlide = (currentSlide + 1) % slides.length
+      setCurrentSlide(nextSlide)
+    })
+
+    return () => {
+      if (timelineRef.current) {
+        timelineRef.current.kill()
+      }
+    }
+  }, [content.heroSlides, currentSlide])
 
   return (
     <div className="landing-page">
@@ -233,18 +283,19 @@ function Home() {
         <div className="hero-content">
           <div className="hero-left">
             <span className="hero-subtitle">{content.heroSubtitle}</span>
-            <h1 className={`hero-title ${isAnimating ? 'slide-out' : 'slide-in'}`} key={currentSlide}>
+            <h1 className="hero-title" ref={titleRef} key={currentSlide}>
               <span className="savings-text">
-                <AnimatedText text={getCurrentSlide().line1} delay={0} />
+                <AnimatedText text={getDisplayedSlide().line1} />
               </span>
               <span className="sparkle-icon">✦</span>
               <br />
-              <AnimatedText text={getCurrentSlide().line2} delay={0.3} />
+              <AnimatedText text={getDisplayedSlide().line2} />
               <br />
-              <AnimatedText text={getCurrentSlide().line3} delay={0.6} />{' '}
+              <AnimatedText text={getDisplayedSlide().line3} />{' '}
               <span className="highlight">
-                <AnimatedText text={getCurrentSlide().highlight} delay={0.8} />
+                <AnimatedText text={getDisplayedSlide().highlight} />
               </span>
+              <span className="typing-cursor" ref={cursorRef}></span>
             </h1>
             {/* Slide indicators */}
             <div className="slide-indicators">
@@ -253,11 +304,13 @@ function Home() {
                   key={index}
                   className={`slide-dot ${index === currentSlide ? 'active' : ''}`}
                   onClick={() => {
-                    setIsAnimating(true)
-                    setTimeout(() => {
-                      setCurrentSlide(index)
-                      setTimeout(() => setIsAnimating(false), 100)
-                    }, 300)
+                    if (index === currentSlide) return // Don't re-animate same slide
+
+                    // Kill current timeline and switch slide (GSAP will restart automatically)
+                    if (timelineRef.current) {
+                      timelineRef.current.kill()
+                    }
+                    setCurrentSlide(index)
                   }}
                   aria-label={`Go to slide ${index + 1}`}
                 />

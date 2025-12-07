@@ -174,15 +174,7 @@ html {
   line-height: 1.05;
   margin: 0;
   max-width: 500px;
-  transition: opacity 0.3s ease;
-}
-
-.hero-title.slide-out {
-  opacity: 0.7;
-}
-
-.hero-title.slide-in {
-  opacity: 1;
+  position: relative;
 }
 
 .hero-title .savings-text {
@@ -201,56 +193,25 @@ html {
   }
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-/* Character Animation */
-@keyframes charFadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(20px) rotateX(-90deg);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) rotateX(0);
-  }
-}
-
-@keyframes charFadeOut {
-  0% {
-    opacity: 1;
-    transform: translateY(0) rotateX(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-20px) rotateX(90deg);
-  }
-}
-
+/* Character styling for GSAP animation */
 .animated-text {
   display: inline-block;
-  perspective: 1000px;
 }
 
 .animated-text .char {
   display: inline-block;
-  opacity: 0;
-  animation: charFadeIn 0.4s ease-out forwards;
-  transform-origin: center bottom;
+  opacity: 0; /* GSAP controls opacity */
 }
 
-.hero-title.slide-in .animated-text .char {
-  animation: charFadeIn 0.4s ease-out forwards;
-}
-
-.hero-title.slide-out .animated-text .char {
-  animation: charFadeOut 0.3s ease-in forwards;
+/* Typing Cursor - GSAP controls opacity */
+.typing-cursor {
+  display: inline-block;
+  width: 4px;
+  height: 0.9em;
+  background: #c2ff9d;
+  margin-left: 2px;
+  vertical-align: baseline;
+  opacity: 1;
 }
 
 /* Slide Indicators */
@@ -2567,9 +2528,9 @@ html {
 .store-btn {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   background: white;
-  padding: 12px 20px;
+  padding: 6px 22px;
   border-radius: 10px;
   text-decoration: none;
   margin-bottom: 12px;
@@ -2583,6 +2544,8 @@ html {
 
 .store-btn svg {
   color: #1a1a2e;
+  width: 22px;
+  height: 22px;
 }
 
 .store-text {
@@ -2590,13 +2553,14 @@ html {
   flex-direction: column;
 }
 
-.store-subtitle {
+.store-subtitle,
+.store-small {
   font-size: 10px;
-  color: #6b7280;
+  color: #1a1a2e;
 }
 
 .store-name {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: #1a1a2e;
 }
