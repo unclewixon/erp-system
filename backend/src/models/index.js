@@ -70,3 +70,11 @@ export { SystemSetting, NotificationTemplate, NotificationLog, NotificationPrefe
 export { default as Plan } from './Plan.js';
 export { default as PaymentSettings } from './PaymentSettings.js';
 export { default as Subscription } from './Subscription.js';
+
+// Duty Roster & Shift Scheduling
+export { default as DutyRosterLink } from './DutyRosterLink.js';
+export { default as EmployeeShiftSchedule } from './EmployeeShiftSchedule.js';
+export { default as ShiftSwapRequest } from './ShiftSwapRequest.js';
+
+// Email Settings
+export { default as EmailSettings } from './EmailSettings.js';

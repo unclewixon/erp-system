@@ -49,6 +49,9 @@ import {
   liveChatRoutes,
   websiteContentRoutes,
   paymentRoutes,
+  dutyRosterRoutes,
+  emailSettingsRoutes,
+  globalSettingsRoutes,
 } from './routes/index.js';
 
 // Load env vars
@@ -144,6 +147,9 @@ app.use('/api/plans', planRoutes);
 app.use('/api/live-chat', liveChatRoutes);
 app.use('/api/website-content', websiteContentRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/duty-roster', dutyRosterRoutes);
+app.use('/api/email-settings', emailSettingsRoutes);
+app.use('/api/global-settings', globalSettingsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

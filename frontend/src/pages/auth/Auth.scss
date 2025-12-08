@@ -58,6 +58,38 @@
 }
 
 .auth-form {
+  .form-group {
+    margin-bottom: 1.5rem !important;
+
+    label {
+      display: block;
+      margin-bottom: 0.625rem !important;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    input,
+    textarea,
+    select {
+      color: #1a1a2e !important;
+      background: $white !important;
+      padding: 0.75rem 1rem !important;
+      font-size: 0.9375rem;
+      width: 100%;
+      border: 1px solid var(--border-color);
+
+      &::placeholder {
+        color: #9ca3af !important;
+      }
+
+      &:focus {
+        outline: none;
+        border-color: $primary;
+      }
+    }
+  }
+
   .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;

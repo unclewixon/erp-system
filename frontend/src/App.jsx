@@ -28,11 +28,16 @@ import Plans from './pages/admin/Plans';
 import LiveChats from './pages/admin/LiveChats';
 import WebsiteContent from './pages/admin/WebsiteContent';
 import PaymentSettings from './pages/admin/PaymentSettings';
+import EmailSettings from './pages/admin/EmailSettings';
+import GlobalSettings from './pages/admin/GlobalSettings';
 import Settings from './pages/settings/Settings';
 import Communications from './pages/communications/Communications';
 import Assets from './pages/assets/Assets';
 import Tasks from './pages/tasks/Tasks';
 import Finance from './pages/finance/Finance';
+import Shifts from './pages/hr/Shifts';
+import MySchedule from './pages/hr/MySchedule';
+import SwapRequests from './pages/hr/SwapRequests';
 
 // Website Pages
 import Home from './pages/website/Home';
@@ -41,6 +46,9 @@ import Contact from './pages/website/Contact';
 // Payment Pages
 import Subscription from './pages/payment/Subscription';
 import PaymentCallback from './pages/payment/PaymentCallback';
+
+// Public Pages
+import RosterPlanning from './pages/public/RosterPlanning';
 
 import './styles/global.scss';
 
@@ -115,6 +123,9 @@ const AppRoutes = () => {
       <Route path="/pricing" element={<Navigate to="/#features" replace />} />
       <Route path="/contact" element={<Contact />} />
 
+      {/* Public Roster Planning Page */}
+      <Route path="/roster/:token" element={<RosterPlanning />} />
+
       {/* Auth Routes */}
       <Route
         path="/login"
@@ -171,12 +182,17 @@ const AppRoutes = () => {
         <Route path="assets" element={<Assets />} />
         <Route path="tasks" element={<Tasks />} />
         <Route path="finance" element={<Finance />} />
+        <Route path="shifts" element={<Shifts />} />
+        <Route path="my-schedule" element={<MySchedule />} />
+        <Route path="swap-requests" element={<SwapRequests />} />
         <Route path="tenants" element={<Tenants />} />
         <Route path="analytics" element={<Analytics />} />
         <Route path="plans" element={<Plans />} />
         <Route path="live-chats" element={<LiveChats />} />
         <Route path="website-content" element={<WebsiteContent />} />
         <Route path="payment-settings" element={<PaymentSettings />} />
+        <Route path="email-settings" element={<EmailSettings />} />
+        <Route path="global-settings" element={<GlobalSettings />} />
         <Route path="settings" element={<Settings />} />
       </Route>
 

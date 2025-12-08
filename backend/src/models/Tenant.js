@@ -75,6 +75,32 @@ const tenantSchema = new mongoose.Schema({
       default: true,
     },
   },
+  // Trial Information
+  trial: {
+    isOnTrial: {
+      type: Boolean,
+      default: true,
+    },
+    trialStartDate: {
+      type: Date,
+      default: Date.now,
+    },
+    trialEndDate: {
+      type: Date,
+    },
+    trialDays: {
+      type: Number,
+      default: 3,
+    },
+    hasExpired: {
+      type: Boolean,
+      default: false,
+    },
+    convertedToPaid: {
+      type: Boolean,
+      default: false,
+    },
+  },
   settings: {
     timezone: {
       type: String,
@@ -146,8 +172,53 @@ tenantSchema.pre('save', function(next) {
     }
   }
 
+  // Calculate trial end date for new tenants on trial
+  if (this.isNew && this.trial.isOnTrial) {
+    const trialDays = this.trial.trialDays || 3;
+    const startDate = this.trial.trialStartDate || new Date();
+    this.trial.trialStartDate = startDate;
+    this.trial.trialEndDate = new Date(startDate.getTime() + (trialDays * 24 * 60 * 60 * 1000));
+  }
+
+  // Update trial end date if trial days changed
+  if (this.isModified('trial.trialDays') && !this.isNew && this.trial.isOnTrial) {
+    const startDate = this.trial.trialStartDate || new Date();
+    this.trial.trialEndDate = new Date(startDate.getTime() + (this.trial.trialDays * 24 * 60 * 60 * 1000));
+  }
+
   next();
 });
+
+// Method to check if trial has expired
+tenantSchema.methods.checkTrialStatus = function() {
+  if (!this.trial.isOnTrial || this.trial.convertedToPaid) {
+    return { isExpired: false, daysRemaining: null };
+  }
+
+  const now = new Date();
+  const endDate = new Date(this.trial.trialEndDate);
+  const isExpired = now > endDate;
+  const daysRemaining = isExpired ? 0 : Math.ceil((endDate - now) / (24 * 60 * 60 * 1000));
+
+  return { isExpired, daysRemaining, endDate };
+};
+
+// Static method to update expired trials
+tenantSchema.statics.updateExpiredTrials = async function() {
+  const now = new Date();
+  const result = await this.updateMany(
+    {
+      'trial.isOnTrial': true,
+      'trial.hasExpired': false,
+      'trial.convertedToPaid': false,
+      'trial.trialEndDate': { $lt: now },
+    },
+    {
+      $set: { 'trial.hasExpired': true },
+    }
+  );
+  return result;
+};
 
 // Virtual for employee count
 tenantSchema.virtual('employeeCount', {

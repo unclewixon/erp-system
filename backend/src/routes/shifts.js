@@ -23,6 +23,14 @@ const validate = (req, res, next) => {
 // @access  Private
 router.get('/', protect, tenantGuard, async (req, res) => {
   try {
+    // Superadmins don't have tenant-specific shifts
+    if (!req.user.tenant) {
+      return res.json({
+        success: true,
+        data: [],
+      });
+    }
+
     const shifts = await Shift.find({
       tenant: req.user.tenant._id,
       isActive: true,

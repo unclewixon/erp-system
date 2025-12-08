@@ -29,6 +29,10 @@ import {
   HiOutlineCreditCard,
   HiOutlineChat,
   HiOutlineDocumentText,
+  HiOutlineRefresh,
+  HiOutlineSwitchHorizontal,
+  HiOutlineMail,
+  HiOutlineGlobeAlt,
 } from 'react-icons/hi';
 import './Sidebar.scss';
 
@@ -45,12 +49,16 @@ const Sidebar = ({ isOpen, onClose }) => {
         { path: '/app/live-chats', icon: HiOutlineChat, label: 'Live Chats' },
         { path: '/app/website-content', icon: HiOutlineDocumentText, label: 'Website Content' },
         { path: '/app/payment-settings', icon: HiOutlineCash, label: 'Payment Settings' },
+        { path: '/app/email-settings', icon: HiOutlineMail, label: 'Email Settings' },
+        { path: '/app/global-settings', icon: HiOutlineGlobeAlt, label: 'Global Settings' },
         { path: '/app/settings', icon: HiOutlineCog, label: 'Settings' },
       ]
     : [
         { path: '/app/dashboard', icon: HiOutlineHome, label: 'Dashboard' },
         { path: '/app/employees', icon: HiOutlineUsers, label: 'Employees' },
         { path: '/app/attendance', icon: HiOutlineClock, label: 'Attendance' },
+        { path: '/app/shifts', icon: HiOutlineRefresh, label: 'Shifts' },
+        { path: '/app/my-schedule', icon: HiOutlineCalendar, label: 'My Schedule' },
         { path: '/app/leaves', icon: HiOutlineCalendar, label: 'Leave Management' },
         { path: '/app/payroll', icon: HiOutlineCash, label: 'Payroll' },
         { path: '/app/accounting', icon: HiOutlineCalculator, label: 'Accounting' },

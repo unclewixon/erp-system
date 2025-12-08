@@ -1,0 +1,405 @@
+.my-schedule-page {
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+
+    .header-content {
+      h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+
+        svg {
+          color: #3b82f6;
+        }
+      }
+
+      p {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+      }
+    }
+
+    .month-navigation {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+
+      .btn-nav {
+        width: 2.25rem;
+        height: 2.25rem;
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        background: var(--card-bg);
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+          background: var(--bg-secondary);
+          color: var(--text-primary);
+        }
+      }
+
+      .current-month {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        min-width: 150px;
+        text-align: center;
+      }
+    }
+  }
+
+  .schedule-calendar {
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    margin-bottom: 2rem;
+
+    .calendar-header {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+
+      .day-header {
+        padding: 0.75rem;
+        text-align: center;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+      }
+    }
+
+    .calendar-body {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+    }
+
+    .calendar-day {
+      min-height: 100px;
+      padding: 0.5rem;
+      border-right: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      position: relative;
+
+      &:nth-child(7n) {
+        border-right: none;
+      }
+
+      &.empty {
+        background: var(--bg-secondary);
+      }
+
+      &.today {
+        background: rgba(59, 130, 246, 0.05);
+
+        .day-number {
+          background: #3b82f6;
+          color: white;
+          border-radius: 50%;
+          width: 1.5rem;
+          height: 1.5rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+      }
+
+      &.weekend {
+        background: var(--bg-secondary);
+      }
+
+      &.day-off {
+        background: rgba(156, 163, 175, 0.1);
+      }
+
+      .day-number {
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        margin-bottom: 0.375rem;
+      }
+
+      .shift-info {
+        background: rgba(59, 130, 246, 0.1);
+        border-left: 3px solid #3b82f6;
+        border-radius: 0.375rem;
+        padding: 0.375rem 0.5rem;
+        position: relative;
+
+        .shift-name {
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: var(--text-primary);
+          margin-bottom: 0.125rem;
+        }
+
+        .shift-time {
+          font-size: 0.625rem;
+          color: var(--text-secondary);
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+
+          svg {
+            font-size: 0.75rem;
+          }
+        }
+
+        .off-label {
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #9ca3af;
+        }
+
+        .btn-swap {
+          position: absolute;
+          top: 0.25rem;
+          right: 0.25rem;
+          width: 1.25rem;
+          height: 1.25rem;
+          border: none;
+          background: rgba(255, 255, 255, 0.8);
+          border-radius: 0.25rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          opacity: 0;
+          transition: opacity 0.2s;
+          color: #6b7280;
+
+          &:hover {
+            background: #3b82f6;
+            color: white;
+          }
+        }
+
+        &:hover .btn-swap {
+          opacity: 1;
+        }
+      }
+
+      .no-schedule {
+        font-size: 0.75rem;
+        color: var(--text-tertiary);
+        text-align: center;
+        margin-top: 1rem;
+      }
+    }
+  }
+
+  .swap-requests-section {
+    h2 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+    }
+
+    .empty-state {
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-color);
+      padding: 2rem;
+      text-align: center;
+      color: var(--text-secondary);
+    }
+
+    .swap-requests-list {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .swap-request-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+
+      .request-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-color);
+
+        .badge {
+          padding: 0.25rem 0.5rem;
+          border-radius: 9999px;
+          font-size: 0.6875rem;
+          font-weight: 600;
+        }
+
+        .badge-success {
+          background: rgba(16, 185, 129, 0.1);
+          color: #10b981;
+        }
+
+        .badge-warning {
+          background: rgba(245, 158, 11, 0.1);
+          color: #f59e0b;
+        }
+
+        .badge-danger {
+          background: rgba(239, 68, 68, 0.1);
+          color: #ef4444;
+        }
+
+        .badge-info {
+          background: rgba(59, 130, 246, 0.1);
+          color: #3b82f6;
+        }
+
+        .request-date {
+          font-size: 0.75rem;
+          color: var(--text-tertiary);
+        }
+      }
+
+      .request-body {
+        padding: 1rem;
+
+        .swap-details {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 1.5rem;
+          margin-bottom: 1rem;
+
+          .swap-from,
+          .swap-to {
+            text-align: center;
+
+            strong {
+              display: block;
+              font-size: 0.625rem;
+              text-transform: uppercase;
+              color: var(--text-tertiary);
+              margin-bottom: 0.25rem;
+            }
+
+            div {
+              font-size: 0.875rem;
+              color: var(--text-primary);
+            }
+
+            .date {
+              font-size: 0.75rem;
+              color: var(--text-secondary);
+            }
+          }
+
+          .swap-icon {
+            font-size: 1.25rem;
+            color: #3b82f6;
+          }
+        }
+
+        .request-reason {
+          font-size: 0.8125rem;
+          color: var(--text-secondary);
+          padding-top: 0.75rem;
+          border-top: 1px solid var(--border-color);
+
+          strong {
+            color: var(--text-primary);
+          }
+        }
+      }
+
+      .request-actions {
+        display: flex;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        border-top: 1px solid var(--border-color);
+        background: var(--bg-secondary);
+        justify-content: flex-end;
+
+        .btn-sm {
+          padding: 0.375rem 0.75rem;
+          font-size: 0.75rem;
+        }
+      }
+    }
+  }
+
+  // Modal styles
+  .current-shift-info {
+    background: var(--bg-secondary);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+
+    strong {
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-bottom: 0.375rem;
+    }
+
+    .shift-details {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.875rem;
+      color: var(--text-primary);
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .my-schedule-page {
+    .page-header {
+      flex-direction: column;
+      align-items: stretch;
+
+      .month-navigation {
+        justify-content: center;
+      }
+    }
+
+    .schedule-calendar {
+      .calendar-day {
+        min-height: 70px;
+        padding: 0.25rem;
+
+        .shift-info {
+          padding: 0.25rem;
+
+          .shift-name {
+            font-size: 0.625rem;
+          }
+
+          .shift-time {
+            display: none;
+          }
+
+          .btn-swap {
+            opacity: 1;
+          }
+        }
+      }
+    }
+  }
+}

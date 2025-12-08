@@ -730,6 +730,21 @@ tbody tr:nth-child(even) {
     }
   }
 
+  // Direct child stat-value (without stat-content wrapper)
+  > .stat-value {
+    font-size: $text-2xl;
+    font-weight: $font-bold;
+    color: var(--text-primary);
+    line-height: 1;
+    margin-bottom: $spacing-xs;
+  }
+
+  // Direct child stat-label (without stat-content wrapper)
+  > .stat-label {
+    font-size: $text-sm;
+    color: var(--text-tertiary);
+  }
+
   .stat-content {
     flex: 1;
 

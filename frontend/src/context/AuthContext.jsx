@@ -132,6 +132,49 @@ export const AuthProvider = ({ children }) => {
     return subscription.status === 'active' || subscription.status === 'trial';
   };
 
+  // Check if trial has expired
+  const isTrialExpired = () => {
+    // Super admins don't have trials
+    if (user?.role === 'super_admin') return false;
+    // Demo organization bypass
+    if (tenant?.email === 'demo@company.com' || user?.email === 'demo@company.com') return false;
+    // If tenant has converted to paid, not expired
+    if (tenant?.trial?.convertedToPaid) return false;
+    // If not on trial, not expired (either they have subscription or need one)
+    if (!tenant?.trial?.isOnTrial) return false;
+    // Check if trial end date has passed
+    if (tenant?.trial?.trialEndDate) {
+      return new Date() > new Date(tenant.trial.trialEndDate);
+    }
+    // Check the hasExpired flag
+    return tenant?.trial?.hasExpired || false;
+  };
+
+  // Get trial status info
+  const getTrialStatus = () => {
+    if (!tenant?.trial?.isOnTrial || tenant?.trial?.convertedToPaid) {
+      return { isOnTrial: false, daysRemaining: null, isExpired: false };
+    }
+
+    const now = new Date();
+    const endDate = tenant?.trial?.trialEndDate ? new Date(tenant.trial.trialEndDate) : null;
+
+    if (!endDate) {
+      return { isOnTrial: true, daysRemaining: null, isExpired: false };
+    }
+
+    const isExpired = now > endDate;
+    const daysRemaining = isExpired ? 0 : Math.ceil((endDate - now) / (24 * 60 * 60 * 1000));
+
+    return {
+      isOnTrial: true,
+      daysRemaining,
+      isExpired,
+      endDate,
+      trialDays: tenant?.trial?.trialDays || 3,
+    };
+  };
+
   const value = {
     user,
     tenant,
@@ -144,6 +187,8 @@ export const AuthProvider = ({ children }) => {
     refreshUser,
     refreshSubscription,
     hasActiveSubscription,
+    isTrialExpired,
+    getTrialStatus,
     isAuthenticated: !!user,
     isSuperAdmin: user?.role === 'super_admin',
     isTenantAdmin: user?.role === 'tenant_admin',

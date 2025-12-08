@@ -63,3 +63,12 @@ export { default as websiteContentRoutes } from './websiteContent.js';
 
 // Payments & Subscriptions
 export { default as paymentRoutes } from './payments.js';
+
+// Duty Roster & Shift Scheduling
+export { default as dutyRosterRoutes } from './dutyRoster.js';
+
+// Email Settings
+export { default as emailSettingsRoutes } from './emailSettings.js';
+
+// Global Settings
+export { default as globalSettingsRoutes } from './globalSettings.js';

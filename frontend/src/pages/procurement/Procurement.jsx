@@ -43,6 +43,20 @@ const Procurement = () => {
     priority: 'normal',
   });
 
+  const [showRequisitionModal, setShowRequisitionModal] = useState(false);
+  const [showSupplierDetailModal, setShowSupplierDetailModal] = useState(false);
+  const [selectedSupplier, setSelectedSupplier] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [showOrderDetailModal, setShowOrderDetailModal] = useState(false);
+  const [generatingReport, setGeneratingReport] = useState(null);
+  const [requisitionForm, setRequisitionForm] = useState({
+    title: '',
+    department: '',
+    items: [{ description: '', quantity: '', estimatedCost: '' }],
+    justification: '',
+    priority: 'normal',
+  });
+
   useEffect(() => {
     fetchProcurementData();
   }, []);
@@ -221,6 +235,185 @@ const Procurement = () => {
     }
   };
 
+  const handleViewOrder = (order) => {
+    setSelectedOrder(order);
+    setShowOrderDetailModal(true);
+  };
+
+  const handleApproveOrder = async (orderId) => {
+    try {
+      await api.put(`/bills/purchase-orders/${orderId}/status`, { status: 'approved' });
+      toast.success('Order approved successfully');
+      fetchProcurementData();
+    } catch (error) {
+      toast.error('Failed to approve order');
+    }
+  };
+
+  const handleRejectOrder = async (orderId) => {
+    if (!window.confirm('Are you sure you want to reject this order?')) return;
+    try {
+      await api.put(`/bills/purchase-orders/${orderId}/status`, { status: 'rejected' });
+      toast.success('Order rejected');
+      fetchProcurementData();
+    } catch (error) {
+      toast.error('Failed to reject order');
+    }
+  };
+
+  const handleViewSupplier = (supplier) => {
+    setSelectedSupplier(supplier);
+    setShowSupplierDetailModal(true);
+  };
+
+  const handleCreateOrderFromSupplier = (supplier) => {
+    setFormData({ ...formData, supplier: supplier.name });
+    setModalType('order');
+    setShowModal(true);
+  };
+
+  const handleCreateRequisition = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post('/procurement/requisitions', requisitionForm);
+      toast.success('Requisition submitted successfully');
+      setShowRequisitionModal(false);
+      setRequisitionForm({
+        title: '',
+        department: '',
+        items: [{ description: '', quantity: '', estimatedCost: '' }],
+        justification: '',
+        priority: 'normal',
+      });
+    } catch (error) {
+      toast.error('Failed to create requisition');
+    }
+  };
+
+  const downloadCSV = (data, filename) => {
+    const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const generateSpendAnalysisReport = async () => {
+    setGeneratingReport('spend');
+    try {
+      const headers = ['Supplier', 'Total Orders', 'Total Amount', 'Avg Order Value'];
+      const supplierSpend = suppliers.map(s => {
+        const supplierOrders = purchaseOrders.filter(o => o.supplier === s.name);
+        const totalAmount = supplierOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+        return {
+          name: s.name,
+          orders: supplierOrders.length,
+          total: totalAmount,
+          avg: supplierOrders.length > 0 ? totalAmount / supplierOrders.length : 0,
+        };
+      });
+
+      const rows = supplierSpend.map(s => [s.name, s.orders, s.total, Math.round(s.avg)]);
+      const csvContent = [
+        'SPEND ANALYSIS REPORT',
+        `Generated: ${new Date().toLocaleDateString()}`,
+        '',
+        headers.join(','),
+        ...rows.map(row => row.join(',')),
+      ].join('\n');
+
+      downloadCSV(csvContent, `spend-analysis-${new Date().toISOString().split('T')[0]}.csv`);
+      toast.success('Spend Analysis Report downloaded');
+    } finally {
+      setGeneratingReport(null);
+    }
+  };
+
+  const generateSupplierPerformanceReport = async () => {
+    setGeneratingReport('supplier');
+    try {
+      const headers = ['Supplier', 'Category', 'Rating', 'Total Orders', 'Email', 'Phone'];
+      const rows = suppliers.map(s => [s.name, s.category, s.rating, s.ordersCount, s.email, s.phone]);
+
+      const csvContent = [
+        'SUPPLIER PERFORMANCE REPORT',
+        `Generated: ${new Date().toLocaleDateString()}`,
+        '',
+        headers.join(','),
+        ...rows.map(row => row.join(',')),
+      ].join('\n');
+
+      downloadCSV(csvContent, `supplier-performance-${new Date().toISOString().split('T')[0]}.csv`);
+      toast.success('Supplier Performance Report downloaded');
+    } finally {
+      setGeneratingReport(null);
+    }
+  };
+
+  const generateOrderHistoryReport = async () => {
+    setGeneratingReport('orders');
+    try {
+      const headers = ['PO Number', 'Supplier', 'Items', 'Total Amount', 'Status', 'Priority', 'Created Date', 'Expected Delivery'];
+      const rows = purchaseOrders.map(o => [
+        o.id,
+        o.supplier,
+        o.items,
+        o.totalAmount,
+        o.status,
+        o.priority,
+        new Date(o.createdAt).toLocaleDateString(),
+        new Date(o.expectedDelivery).toLocaleDateString(),
+      ]);
+
+      const csvContent = [
+        'ORDER HISTORY REPORT',
+        `Generated: ${new Date().toLocaleDateString()}`,
+        `Total Orders: ${purchaseOrders.length}`,
+        '',
+        headers.join(','),
+        ...rows.map(row => row.join(',')),
+      ].join('\n');
+
+      downloadCSV(csvContent, `order-history-${new Date().toISOString().split('T')[0]}.csv`);
+      toast.success('Order History Report downloaded');
+    } finally {
+      setGeneratingReport(null);
+    }
+  };
+
+  const generateDeliveryReport = async () => {
+    setGeneratingReport('delivery');
+    try {
+      const deliveredOrders = purchaseOrders.filter(o => o.status === 'delivered');
+      const headers = ['PO Number', 'Supplier', 'Expected Delivery', 'Status'];
+      const rows = purchaseOrders.map(o => [
+        o.id,
+        o.supplier,
+        new Date(o.expectedDelivery).toLocaleDateString(),
+        o.status,
+      ]);
+
+      const csvContent = [
+        'DELIVERY TRACKING REPORT',
+        `Generated: ${new Date().toLocaleDateString()}`,
+        `Delivered: ${deliveredOrders.length}`,
+        `Pending: ${purchaseOrders.filter(o => o.status === 'pending').length}`,
+        '',
+        headers.join(','),
+        ...rows.map(row => row.join(',')),
+      ].join('\n');
+
+      downloadCSV(csvContent, `delivery-report-${new Date().toISOString().split('T')[0]}.csv`);
+      toast.success('Delivery Report downloaded');
+    } finally {
+      setGeneratingReport(null);
+    }
+  };
+
   const filteredOrders = purchaseOrders.filter((order) => {
     const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.supplier.toLowerCase().includes(searchTerm.toLowerCase());
@@ -372,15 +565,15 @@ const Procurement = () => {
                     <td>{order.createdBy}</td>
                     <td>
                       <div className="action-buttons">
-                        <button className="btn btn-ghost btn-sm">
+                        <button className="btn btn-ghost btn-sm" onClick={() => handleViewOrder(order)}>
                           <HiOutlineEye />
                         </button>
                         {order.status === 'pending' && (
                           <>
-                            <button className="btn btn-ghost btn-sm text-success">
+                            <button className="btn btn-ghost btn-sm text-success" onClick={() => handleApproveOrder(order.id)}>
                               <HiOutlineCheck />
                             </button>
-                            <button className="btn btn-ghost btn-sm text-danger">
+                            <button className="btn btn-ghost btn-sm text-danger" onClick={() => handleRejectOrder(order.id)}>
                               <HiOutlineX />
                             </button>
                           </>
@@ -432,8 +625,8 @@ const Procurement = () => {
                   <span className="rating-value">{supplier.rating}</span>
                 </div>
                 <div className="supplier-actions">
-                  <button className="btn btn-outline btn-sm">View Details</button>
-                  <button className="btn btn-primary btn-sm">Create Order</button>
+                  <button className="btn btn-outline btn-sm" onClick={() => handleViewSupplier(supplier)}>View Details</button>
+                  <button className="btn btn-primary btn-sm" onClick={() => handleCreateOrderFromSupplier(supplier)}>Create Order</button>
                 </div>
               </div>
             ))}
@@ -446,7 +639,7 @@ const Procurement = () => {
         <div className="card">
           <div className="card-header">
             <h3>Purchase Requisitions</h3>
-            <button className="btn btn-primary btn-sm">
+            <button className="btn btn-primary btn-sm" onClick={() => setShowRequisitionModal(true)}>
               <HiOutlinePlus /> New Requisition
             </button>
           </div>
@@ -465,25 +658,49 @@ const Procurement = () => {
             <HiOutlineCurrencyDollar className="report-icon" />
             <h4>Spend Analysis</h4>
             <p>Breakdown of procurement spending</p>
-            <button className="btn btn-outline btn-sm">Generate</button>
+            <button
+              className="btn btn-outline btn-sm"
+              onClick={generateSpendAnalysisReport}
+              disabled={generatingReport === 'spend'}
+            >
+              {generatingReport === 'spend' ? 'Generating...' : 'Generate'}
+            </button>
           </div>
           <div className="card report-card">
             <HiOutlineUsers className="report-icon" />
             <h4>Supplier Performance</h4>
             <p>Ratings and delivery metrics</p>
-            <button className="btn btn-outline btn-sm">Generate</button>
+            <button
+              className="btn btn-outline btn-sm"
+              onClick={generateSupplierPerformanceReport}
+              disabled={generatingReport === 'supplier'}
+            >
+              {generatingReport === 'supplier' ? 'Generating...' : 'Generate'}
+            </button>
           </div>
           <div className="card report-card">
             <HiOutlineShoppingCart className="report-icon" />
             <h4>Order History</h4>
             <p>All purchase orders by date</p>
-            <button className="btn btn-outline btn-sm">Generate</button>
+            <button
+              className="btn btn-outline btn-sm"
+              onClick={generateOrderHistoryReport}
+              disabled={generatingReport === 'orders'}
+            >
+              {generatingReport === 'orders' ? 'Generating...' : 'Generate'}
+            </button>
           </div>
           <div className="card report-card">
             <HiOutlineTruck className="report-icon" />
             <h4>Delivery Report</h4>
             <p>On-time delivery tracking</p>
-            <button className="btn btn-outline btn-sm">Generate</button>
+            <button
+              className="btn btn-outline btn-sm"
+              onClick={generateDeliveryReport}
+              disabled={generatingReport === 'delivery'}
+            >
+              {generatingReport === 'delivery' ? 'Generating...' : 'Generate'}
+            </button>
           </div>
         </div>
       )}
@@ -650,6 +867,147 @@ const Procurement = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Requisition Modal */}
+      {showRequisitionModal && (
+        <div className="modal-overlay" onClick={() => setShowRequisitionModal(false)}>
+          <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>New Purchase Requisition</h2>
+              <button className="close-btn" onClick={() => setShowRequisitionModal(false)}>
+                <HiOutlineX />
+              </button>
+            </div>
+            <form onSubmit={handleCreateRequisition}>
+              <div className="modal-body">
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Requisition Title</label>
+                    <input
+                      type="text"
+                      value={requisitionForm.title}
+                      onChange={(e) => setRequisitionForm({ ...requisitionForm, title: e.target.value })}
+                      placeholder="e.g., Office Supplies Q1 2025"
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Department</label>
+                    <input
+                      type="text"
+                      value={requisitionForm.department}
+                      onChange={(e) => setRequisitionForm({ ...requisitionForm, department: e.target.value })}
+                      placeholder="e.g., Marketing"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Priority</label>
+                  <select
+                    value={requisitionForm.priority}
+                    onChange={(e) => setRequisitionForm({ ...requisitionForm, priority: e.target.value })}
+                  >
+                    <option value="low">Low</option>
+                    <option value="normal">Normal</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Justification</label>
+                  <textarea
+                    value={requisitionForm.justification}
+                    onChange={(e) => setRequisitionForm({ ...requisitionForm, justification: e.target.value })}
+                    placeholder="Explain why these items are needed..."
+                    rows={3}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowRequisitionModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Submit Requisition
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Supplier Detail Modal */}
+      {showSupplierDetailModal && selectedSupplier && (
+        <div className="modal-overlay" onClick={() => setShowSupplierDetailModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Supplier Details</h2>
+              <button className="close-btn" onClick={() => setShowSupplierDetailModal(false)}>
+                <HiOutlineX />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="supplier-detail">
+                <h3>{selectedSupplier.name}</h3>
+                <p><strong>Category:</strong> {selectedSupplier.category}</p>
+                <p><strong>Email:</strong> {selectedSupplier.email}</p>
+                <p><strong>Phone:</strong> {selectedSupplier.phone}</p>
+                <p><strong>Total Orders:</strong> {selectedSupplier.ordersCount}</p>
+                <p><strong>Rating:</strong> {selectedSupplier.rating} / 5</p>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowSupplierDetailModal(false)}>
+                Close
+              </button>
+              <button className="btn btn-primary" onClick={() => { handleCreateOrderFromSupplier(selectedSupplier); setShowSupplierDetailModal(false); }}>
+                Create Order
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Order Detail Modal */}
+      {showOrderDetailModal && selectedOrder && (
+        <div className="modal-overlay" onClick={() => setShowOrderDetailModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Order Details - {selectedOrder.id}</h2>
+              <button className="close-btn" onClick={() => setShowOrderDetailModal(false)}>
+                <HiOutlineX />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="order-detail">
+                <p><strong>Supplier:</strong> {selectedOrder.supplier}</p>
+                <p><strong>Items:</strong> {selectedOrder.items}</p>
+                <p><strong>Total Amount:</strong> {formatCurrency(selectedOrder.totalAmount)}</p>
+                <p><strong>Status:</strong> {selectedOrder.status}</p>
+                <p><strong>Priority:</strong> {selectedOrder.priority}</p>
+                <p><strong>Created By:</strong> {selectedOrder.createdBy}</p>
+                <p><strong>Expected Delivery:</strong> {new Date(selectedOrder.expectedDelivery).toLocaleDateString()}</p>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowOrderDetailModal(false)}>
+                Close
+              </button>
+              {selectedOrder.status === 'pending' && (
+                <>
+                  <button className="btn btn-success" onClick={() => { handleApproveOrder(selectedOrder.id); setShowOrderDetailModal(false); }}>
+                    Approve
+                  </button>
+                  <button className="btn btn-danger" onClick={() => { handleRejectOrder(selectedOrder.id); setShowOrderDetailModal(false); }}>
+                    Reject
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}

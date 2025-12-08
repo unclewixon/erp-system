@@ -51,6 +51,14 @@ const Inventory = () => {
   });
 
   const [generatingReport, setGeneratingReport] = useState(null);
+  const [showStockModal, setShowStockModal] = useState(false);
+  const [stockModalType, setStockModalType] = useState('in'); // 'in' or 'out'
+  const [stockForm, setStockForm] = useState({
+    product: '',
+    quantity: '',
+    reference: '',
+    notes: '',
+  });
 
   useEffect(() => {
     fetchInventoryData();
@@ -406,6 +414,50 @@ const Inventory = () => {
     }
   };
 
+  const openStockModal = (type) => {
+    setStockModalType(type);
+    setStockForm({
+      product: '',
+      quantity: '',
+      reference: '',
+      notes: '',
+    });
+    setShowStockModal(true);
+  };
+
+  const handleStockMovement = async (e) => {
+    e.preventDefault();
+    try {
+      const movementData = {
+        product: stockForm.product,
+        type: stockModalType === 'in' ? 'stock_in' : 'stock_out',
+        quantity: parseInt(stockForm.quantity),
+        reference: stockForm.reference,
+        notes: stockForm.notes,
+      };
+
+      await api.post('/inventory/stock/movements', movementData);
+      toast.success(`Stock ${stockModalType === 'in' ? 'added' : 'removed'} successfully`);
+      setShowStockModal(false);
+      fetchInventoryData();
+    } catch (error) {
+      toast.error(error.response?.data?.message || `Failed to ${stockModalType === 'in' ? 'add' : 'remove'} stock`);
+    }
+  };
+
+  const handleDeleteProduct = async (productId) => {
+    if (!window.confirm('Are you sure you want to delete this product?')) {
+      return;
+    }
+    try {
+      await api.delete(`/inventory/products/${productId}`);
+      toast.success('Product deleted successfully');
+      fetchInventoryData();
+    } catch (error) {
+      toast.error('Failed to delete product');
+    }
+  };
+
   const handleExportProducts = () => {
     const headers = ['Product Name', 'SKU', 'Category', 'Quantity', 'Reorder Level', 'Unit Price', 'Cost Price', 'Status', 'Location'];
     const rows = filteredProducts.map(p => [
@@ -608,7 +660,7 @@ const Inventory = () => {
                         <button className="btn btn-ghost btn-sm" onClick={() => openEditModal(product)}>
                           <HiOutlinePencil />
                         </button>
-                        <button className="btn btn-ghost btn-sm text-danger">
+                        <button className="btn btn-ghost btn-sm text-danger" onClick={() => handleDeleteProduct(product.id)}>
                           <HiOutlineTrash />
                         </button>
                       </div>
@@ -658,10 +710,10 @@ const Inventory = () => {
           <div className="card-header">
             <h3>Stock Movements</h3>
             <div className="header-actions">
-              <button className="btn btn-outline btn-sm">
+              <button className="btn btn-outline btn-sm" onClick={() => openStockModal('in')}>
                 <HiOutlinePlus /> Stock In
               </button>
-              <button className="btn btn-outline btn-sm">
+              <button className="btn btn-outline btn-sm" onClick={() => openStockModal('out')}>
                 <HiOutlineTruck /> Stock Out
               </button>
             </div>
@@ -891,6 +943,74 @@ const Inventory = () => {
                 </button>
                 <button type="submit" className="btn btn-primary">
                   Add Category
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Stock Movement Modal */}
+      {showStockModal && (
+        <div className="modal-overlay" onClick={() => setShowStockModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{stockModalType === 'in' ? 'Stock In' : 'Stock Out'}</h2>
+              <button className="close-btn" onClick={() => setShowStockModal(false)}>
+                <HiOutlineX />
+              </button>
+            </div>
+            <form onSubmit={handleStockMovement}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label>Product</label>
+                  <select
+                    value={stockForm.product}
+                    onChange={(e) => setStockForm({ ...stockForm, product: e.target.value })}
+                    required
+                  >
+                    <option value="">Select product</option>
+                    {products.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Quantity</label>
+                  <input
+                    type="number"
+                    value={stockForm.quantity}
+                    onChange={(e) => setStockForm({ ...stockForm, quantity: e.target.value })}
+                    placeholder="Enter quantity"
+                    min="1"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Reference (Optional)</label>
+                  <input
+                    type="text"
+                    value={stockForm.reference}
+                    onChange={(e) => setStockForm({ ...stockForm, reference: e.target.value })}
+                    placeholder="e.g., PO-2024-001, Invoice #123"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Notes (Optional)</label>
+                  <textarea
+                    value={stockForm.notes}
+                    onChange={(e) => setStockForm({ ...stockForm, notes: e.target.value })}
+                    placeholder="Add any notes..."
+                    rows={2}
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowStockModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  {stockModalType === 'in' ? 'Add Stock' : 'Remove Stock'}
                 </button>
               </div>
             </form>

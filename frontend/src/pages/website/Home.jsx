@@ -198,7 +198,7 @@ function Home() {
     gsap.set(chars, { opacity: 0 })
     gsap.set(cursor, { opacity: 1 })
 
-    const tl = gsap.timeline({ delay: isFirstLoad.current ? 1 : 0 }) // 1s delay on initial page load
+    const tl = gsap.timeline({ delay: isFirstLoad.current ? 0.3 : 0 }) // 0.3s delay on initial page load
     timelineRef.current = tl
     isFirstLoad.current = false
 
@@ -259,7 +259,11 @@ function Home() {
             <a href="#pricing" className="nav-link">Pricing</a>
             <Link to="/contact" className="nav-link">Contact</Link>
           </nav>
-          <Link to="/login" className="fixed-signin-btn">{content.signInButtonText}</Link>
+          <div className="auth-links">
+            <Link to="/register" className="auth-link">register</Link>
+            <span className="auth-divider">|</span>
+            <Link to="/login" className="auth-link">sign In</Link>
+          </div>
         </div>
       </header>
 
@@ -275,7 +279,11 @@ function Home() {
           <a href="#pricing" className="nav-link">Pricing</a>
           <Link to="/contact" className="nav-link">Contact</Link>
         </nav>
-        <Link to="/login" className="download-btn">{content.signInButtonText}</Link>
+        <div className="auth-links">
+          <Link to="/register" className="auth-link">register</Link>
+          <span className="auth-divider">|</span>
+          <Link to="/login" className="auth-link">sign In</Link>
+        </div>
       </header>
 
       {/* Hero Section */}
@@ -476,6 +484,16 @@ function Home() {
             <p className="hero-description">
               {content.heroDescription}
             </p>
+            <div className="trial-cta">
+              <span className="trial-note">No credit card required</span>
+              <Link to="/register?trial=true" className="trial-link">
+                <span className="trial-icon">🚀</span>
+                Start your free 3-day trial
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
             <div className="download-section">
               <span className="download-label">DOWNLOAD NOW ON :</span>
               <div className="store-buttons">

@@ -59,20 +59,47 @@ html {
   color: rgba(82, 78, 230);
 }
 
-.fixed-signin-btn {
-  background: rgba(82, 78, 230);
-  color: white;
-  padding: 12px 28px;
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  border-radius: 30px;
-  transition: background 0.3s;
+/* Auth Links */
+.auth-links {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.fixed-signin-btn:hover {
-  background: rgba(72, 68, 210);
+.auth-link {
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.fixed-navbar .auth-link {
+  color: #1a1a2e;
+}
+
+.fixed-navbar .auth-link:hover {
+  opacity: 0.7;
+}
+
+.landing-header .auth-link {
+  color: white;
+}
+
+.landing-header .auth-link:hover {
+  opacity: 0.8;
+}
+
+.auth-divider {
+  font-size: 14px;
+  opacity: 0.5;
+}
+
+.fixed-navbar .auth-divider {
+  color: #1a1a2e;
+}
+
+.landing-header .auth-divider {
+  color: white;
 }
 
 /* Hero Viewport - First 100vh section */
@@ -137,7 +164,7 @@ html {
   display: flex;
   position: relative;
   padding: 0 60px;
-  min-height: 0;
+  height: 100vh;
 }
 
 .hero-content {
@@ -175,6 +202,7 @@ html {
   margin: 0;
   max-width: 500px;
   position: relative;
+  color: white;
 }
 
 .hero-title .savings-text {
@@ -691,8 +719,56 @@ html {
   font-size: 14px;
   line-height: 1.8;
   color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 32px;
+  margin-bottom: 24px;
   max-width: 320px;
+}
+
+/* Trial CTA */
+.trial-cta {
+  margin-bottom: 32px;
+}
+
+.trial-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #c2ff9d 0%, #9dffb5 100%);
+  color: #1a1a2e;
+  padding: 10px 20px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 24px;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 12px rgba(194, 255, 157, 0.25);
+}
+
+.trial-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(194, 255, 157, 0.4);
+  background: linear-gradient(135deg, #d4ffb8 0%, #b8ffc9 100%);
+}
+
+.trial-icon {
+  font-size: 14px;
+}
+
+.trial-link svg {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.2s ease;
+}
+
+.trial-link:hover svg {
+  transform: translateX(4px);
+}
+
+.trial-note {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
 }
 
 .download-section {

@@ -16,6 +16,7 @@ const featureCategories = [
       { slug: 'employee-management', name: 'Employee Management', description: 'Centralized employee database with profiles, documents, and history tracking' },
       { slug: 'leave-management', name: 'Leave Management', description: 'Automated leave requests, approvals, and balance tracking' },
       { slug: 'attendance-management', name: 'Attendance Management', description: 'Real-time attendance tracking with clock-in/out and reports' },
+      { slug: 'shift-management', name: 'Shift Management', description: 'Create and manage work shifts with flexible scheduling, break times, and overtime rules' },
       { slug: 'department-management', name: 'Department Management', description: 'Organize your workforce into departments and teams' },
       { slug: 'branch-management', name: 'Branch Management', description: 'Multi-location support with branch-specific settings' },
       { slug: 'payroll', name: 'Payroll', description: 'Automated salary calculations, deductions, and payslips' },

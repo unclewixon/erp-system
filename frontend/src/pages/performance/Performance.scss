@@ -236,4 +236,162 @@
     padding: 3rem;
     color: $gray-500;
   }
+
+  // Mobile Responsive Styles
+  @media (max-width: 768px) {
+    .page-header {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+
+      h1 {
+        font-size: 1.25rem;
+      }
+
+      .actions {
+        width: 100%;
+
+        .btn {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+    }
+
+    .cycle-banner {
+      flex-direction: column;
+      gap: 1rem;
+      text-align: center;
+
+      .cycle-info {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 0.75rem;
+    }
+
+    .tabs {
+      flex-wrap: wrap;
+      gap: 0.25rem;
+
+      .tab {
+        flex: 1;
+        min-width: 100px;
+        padding: 0.625rem 0.75rem;
+        font-size: 0.8125rem;
+        text-align: center;
+      }
+    }
+
+    .goal-card {
+      padding: 1rem;
+
+      .goal-header {
+        flex-wrap: wrap;
+
+        h4 {
+          font-size: 0.9375rem;
+          width: 100%;
+          order: 1;
+          margin-left: 16px;
+          margin-bottom: 0.5rem;
+        }
+
+        .goal-priority {
+          order: 0;
+        }
+
+        .badge {
+          order: 2;
+          margin-left: 16px;
+        }
+      }
+
+      .goal-progress {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+
+        .progress-text {
+          text-align: right;
+        }
+      }
+
+      .goal-meta {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      .goal-actions {
+        flex-wrap: wrap;
+
+        .btn {
+          flex: 1;
+          min-width: 80px;
+          justify-content: center;
+        }
+      }
+    }
+
+    .review-card, .cycle-card {
+      padding: 1rem;
+
+      .review-header, .cycle-header {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .review-details {
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .review-actions {
+        .btn {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+    }
+
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+
+    .goals-list, .reviews-list, .cycles-list {
+      padding: 0.75rem;
+    }
+  }
+
+  // Small Mobile Styles
+  @media (max-width: 480px) {
+    .stats-grid {
+      grid-template-columns: 1fr !important;
+    }
+
+    .tabs {
+      .tab {
+        flex-basis: 100%;
+        padding: 0.75rem;
+      }
+    }
+
+    .cycle-banner {
+      padding: 1rem;
+
+      .cycle-info {
+        svg {
+          font-size: 1.25rem;
+        }
+
+        strong {
+          font-size: 0.9375rem;
+        }
+      }
+    }
+  }
 }

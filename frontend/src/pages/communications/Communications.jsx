@@ -45,6 +45,8 @@ const Communications = () => {
     scheduledAt: '',
   });
 
+  const [editingAnnouncement, setEditingAnnouncement] = useState(null);
+
   useEffect(() => {
     fetchCommunicationsData();
   }, []);
@@ -103,8 +105,13 @@ const Communications = () => {
     e.preventDefault();
     try {
       if (modalType === 'announcement') {
-        await api.post('/communications/announcements', formData);
-        toast.success('Announcement created successfully');
+        if (editingAnnouncement) {
+          await api.put(`/communications/announcements/${editingAnnouncement._id}`, formData);
+          toast.success('Announcement updated successfully');
+        } else {
+          await api.post('/communications/announcements', formData);
+          toast.success('Announcement created successfully');
+        }
       } else if (modalType === 'template') {
         await api.post('/communications/templates', {
           name: formData.title,
@@ -143,6 +150,34 @@ const Communications = () => {
       targetAudience: 'all',
       scheduledAt: '',
     });
+    setEditingAnnouncement(null);
+  };
+
+  const handleEditAnnouncement = (announcement) => {
+    setEditingAnnouncement(announcement);
+    setFormData({
+      title: announcement.title,
+      content: announcement.content,
+      type: announcement.type || 'general',
+      priority: announcement.priority || 'normal',
+      targetAudience: announcement.targetAudience || 'all',
+      scheduledAt: '',
+    });
+    setModalType('announcement');
+    setShowModal(true);
+  };
+
+  const handleDeleteAnnouncement = async (announcementId) => {
+    if (!window.confirm('Are you sure you want to delete this announcement?')) {
+      return;
+    }
+    try {
+      await api.delete(`/communications/announcements/${announcementId}`);
+      toast.success('Announcement deleted successfully');
+      fetchCommunicationsData();
+    } catch (error) {
+      toast.error('Failed to delete announcement');
+    }
   };
 
   const getTypeBadge = (type) => {
@@ -271,8 +306,8 @@ const Communications = () => {
                 <div className="announcement-footer">
                   <span className="date">{new Date(announcement.createdAt).toLocaleDateString()}</span>
                   <div className="actions">
-                    <button className="btn btn-ghost btn-sm"><HiOutlinePencil /></button>
-                    <button className="btn btn-ghost btn-sm text-danger"><HiOutlineTrash /></button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => handleEditAnnouncement(announcement)}><HiOutlinePencil /></button>
+                    <button className="btn btn-ghost btn-sm text-danger" onClick={() => handleDeleteAnnouncement(announcement._id)}><HiOutlineTrash /></button>
                   </div>
                 </div>
               </div>
@@ -394,12 +429,12 @@ const Communications = () => {
         </div>
       )}
 
-      {/* Create Announcement Modal */}
+      {/* Create/Edit Announcement Modal */}
       {showModal && modalType === 'announcement' && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>New Announcement</h2>
+              <h2>{editingAnnouncement ? 'Edit Announcement' : 'New Announcement'}</h2>
               <button className="close-btn" onClick={() => setShowModal(false)}>
                 <HiOutlineX />
               </button>
@@ -467,7 +502,7 @@ const Communications = () => {
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary">Publish Announcement</button>
+                <button type="submit" className="btn btn-primary">{editingAnnouncement ? 'Update Announcement' : 'Publish Announcement'}</button>
               </div>
             </form>
           </div>
