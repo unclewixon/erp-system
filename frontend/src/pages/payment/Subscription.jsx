@@ -289,9 +289,21 @@ const Subscription = () => {
               </div>
 
               <div className="plan-features">
-                <span className="feature-count">
-                  {plan.features?.filter(f => f.included).length || 0} features included
-                </span>
+                <ul className="features-list">
+                  {plan.features?.filter(f => f.included).slice(0, 8).map((feature, idx) => (
+                    <li key={idx} className="feature-item">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>{feature.name}</span>
+                    </li>
+                  ))}
+                  {plan.features?.filter(f => f.included).length > 8 && (
+                    <li className="feature-item more">
+                      <span>+{plan.features.filter(f => f.included).length - 8} more features</span>
+                    </li>
+                  )}
+                </ul>
               </div>
 
               <button
