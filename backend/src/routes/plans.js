@@ -5,26 +5,45 @@ import { ROLES } from '../config/constants.js';
 
 const router = express.Router();
 
+// Helper function to enrich plan features with names
+const enrichPlanFeatures = (plans) => {
+  const allFeatures = Plan.getAllFeatures();
+  const featureMap = {};
+  allFeatures.forEach(f => {
+    featureMap[f.slug] = f;
+  });
+
+  return plans.map(plan => {
+    const planObj = plan.toObject();
+    planObj.features = planObj.features.map(f => ({
+      ...f,
+      name: featureMap[f.featureSlug]?.name || f.featureSlug,
+      category: featureMap[f.featureSlug]?.category || 'other',
+      description: featureMap[f.featureSlug]?.description || '',
+    }));
+    return planObj;
+  });
+};
+
 // @route   GET /api/plans
 // @desc    Get all active plans (public)
 // @access  Public
 router.get('/', async (req, res) => {
   try {
-    const plans = await Plan.find({ isActive: true }).sort({ order: 1 });
+    let plans = await Plan.find({ isActive: true }).sort({ order: 1 });
 
     // If no plans exist, create default ones
     if (plans.length === 0) {
       await Plan.createDefaultPlans();
-      const newPlans = await Plan.find({ isActive: true }).sort({ order: 1 });
-      return res.json({
-        success: true,
-        data: newPlans,
-      });
+      plans = await Plan.find({ isActive: true }).sort({ order: 1 });
     }
+
+    // Enrich features with names from the feature definitions
+    const enrichedPlans = enrichPlanFeatures(plans);
 
     res.json({
       success: true,
-      data: plans,
+      data: enrichedPlans,
     });
   } catch (error) {
     console.error('Get plans error:', error);
