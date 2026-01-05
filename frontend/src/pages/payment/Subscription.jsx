@@ -295,7 +295,7 @@ const Subscription = () => {
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>{feature.name}</span>
+                      <span>{feature.name || feature.featureSlug?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Feature'}</span>
                     </li>
                   ))}
                   {plan.features?.filter(f => f.included).length > 8 && (

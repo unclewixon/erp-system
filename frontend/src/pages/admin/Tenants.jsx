@@ -307,64 +307,86 @@ const Tenants = () => {
         isOpen={showViewModal}
         onClose={() => setShowViewModal(false)}
         title="Organization Details"
+        size="lg"
       >
-        {selectedTenant && (
-          <div className="tenant-details">
-            <div className="detail-header">
-              <div className="org-avatar large">{selectedTenant.name.charAt(0)}</div>
-              <div>
-                <h2>{selectedTenant.name}</h2>
-                <p>{selectedTenant.email}</p>
+        <div className="modal-body">
+          {selectedTenant && (
+            <div className="tenant-details">
+              {/* Header with Avatar */}
+              <div className="detail-header">
+                <div className="org-avatar">{selectedTenant.name.charAt(0)}</div>
+                <div className="header-info">
+                  <h2>{selectedTenant.name}</h2>
+                  <p>{selectedTenant.email}</p>
+                </div>
               </div>
+
+              {/* Organization Info Section */}
+              <div className="detail-section">
+                <h4>Organization Information</h4>
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <label>Phone</label>
+                    <span>{selectedTenant.phone || '-'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Industry</label>
+                    <span>{selectedTenant.industry || '-'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Company Size</label>
+                    <span>{selectedTenant.size || '-'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Status</label>
+                    <span className={`badge ${selectedTenant.isActive ? 'badge-success' : 'badge-danger'}`}>
+                      {selectedTenant.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Subscription Section */}
+              <div className="detail-section subscription-info">
+                <h4>Subscription Details</h4>
+                <div className="detail-grid">
+                  <div className="detail-item">
+                    <label>Plan</label>
+                    <span className={`badge ${getPlanBadgeClass(selectedTenant.subscription?.plan)}`}>
+                      {selectedTenant.subscription?.plan || 'starter'}
+                    </span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Created</label>
+                    <span>{new Date(selectedTenant.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Max Employees</label>
+                    <span>{selectedTenant.subscription?.maxEmployees === -1 ? 'Unlimited' : selectedTenant.subscription?.maxEmployees || '-'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <label>Max Branches</label>
+                    <span>{selectedTenant.subscription?.maxBranches === -1 ? 'Unlimited' : selectedTenant.subscription?.maxBranches || '-'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modules Section */}
+              {selectedTenant.subscription?.modules?.length > 0 && (
+                <div className="detail-section">
+                  <h4>Enabled Modules</h4>
+                  <div className="modules-section">
+                    <div className="modules-list">
+                      {selectedTenant.subscription?.modules?.map((module) => (
+                        <span key={module} className="badge badge-info">{module}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="detail-grid">
-              <div className="detail-item">
-                <label>Phone</label>
-                <span>{selectedTenant.phone || '-'}</span>
-              </div>
-              <div className="detail-item">
-                <label>Industry</label>
-                <span>{selectedTenant.industry || '-'}</span>
-              </div>
-              <div className="detail-item">
-                <label>Company Size</label>
-                <span>{selectedTenant.size}</span>
-              </div>
-              <div className="detail-item">
-                <label>Subscription Plan</label>
-                <span className={`badge ${getPlanBadgeClass(selectedTenant.subscription?.plan)}`}>
-                  {selectedTenant.subscription?.plan}
-                </span>
-              </div>
-              <div className="detail-item">
-                <label>Max Employees</label>
-                <span>{selectedTenant.subscription?.maxEmployees === -1 ? 'Unlimited' : selectedTenant.subscription?.maxEmployees}</span>
-              </div>
-              <div className="detail-item">
-                <label>Max Branches</label>
-                <span>{selectedTenant.subscription?.maxBranches === -1 ? 'Unlimited' : selectedTenant.subscription?.maxBranches}</span>
-              </div>
-              <div className="detail-item">
-                <label>Status</label>
-                <span className={`badge ${selectedTenant.isActive ? 'badge-success' : 'badge-danger'}`}>
-                  {selectedTenant.isActive ? 'Active' : 'Inactive'}
-                </span>
-              </div>
-              <div className="detail-item">
-                <label>Created</label>
-                <span>{new Date(selectedTenant.createdAt).toLocaleDateString()}</span>
-              </div>
-            </div>
-            <div className="modules-section">
-              <label>Enabled Modules</label>
-              <div className="modules-list">
-                {selectedTenant.subscription?.modules?.map((module) => (
-                  <span key={module} className="badge badge-info">{module}</span>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </Modal>
     </div>
   );
