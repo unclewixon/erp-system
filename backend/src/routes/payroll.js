@@ -441,9 +441,14 @@ router.get('/:id/payslips', authorize('super_admin', 'tenant_admin', 'hr_manager
 // Get my payslips
 router.get('/payslips/my', async (req, res) => {
   try {
+    // Super Admin has no tenant/employee - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const employee = await Employee.findOne({ user: req.user._id });
     if (!employee) {
-      return res.status(404).json({ success: false, message: 'Employee not found' });
+      return res.json({ success: true, data: [] });
     }
 
     const payslips = await Payslip.find({

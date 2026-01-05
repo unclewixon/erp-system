@@ -212,9 +212,14 @@ router.post('/sessions/:id/cancel', authorize('super_admin', 'tenant_admin', 'hr
 // Get my enrollments
 router.get('/enrollments/my', async (req, res) => {
   try {
+    // Super Admin has no tenant/employee - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const employee = await Employee.findOne({ user: req.user._id });
     if (!employee) {
-      return res.status(404).json({ success: false, message: 'Employee not found' });
+      return res.json({ success: true, data: [] });
     }
 
     const enrollments = await TrainingEnrollment.find({
@@ -522,9 +527,14 @@ router.put('/skills/:id', authorize('super_admin', 'tenant_admin', 'hr_manager')
 // Get my skills
 router.get('/employee-skills/my', async (req, res) => {
   try {
+    // Super Admin has no tenant/employee - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const employee = await Employee.findOne({ user: req.user._id });
     if (!employee) {
-      return res.status(404).json({ success: false, message: 'Employee not found' });
+      return res.json({ success: true, data: [] });
     }
 
     const skills = await EmployeeSkill.find({
