@@ -395,7 +395,6 @@ tbody tr:nth-child(even) {
   max-height: 90vh;
   overflow: auto;
   animation: slideInUp $transition-base;
-  border-radius: 12px;
 
   &.modal-lg {
     max-width: 720px;
