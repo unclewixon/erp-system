@@ -13,6 +13,11 @@ router.use(tenantGuard);
 // Get all benefit plans
 router.get('/plans', async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const plans = await BenefitPlan.find({
       tenant: req.user.tenant,
       isActive: true,
@@ -84,6 +89,11 @@ router.delete('/plans/:id', authorize('super_admin', 'tenant_admin'), async (req
 // Get all employee benefits
 router.get('/', authorize('super_admin', 'tenant_admin', 'hr_manager', 'hr_officer'), async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const { status, planId } = req.query;
     const query = { tenant: req.user.tenant };
 
@@ -104,9 +114,14 @@ router.get('/', authorize('super_admin', 'tenant_admin', 'hr_manager', 'hr_offic
 // Get my benefits
 router.get('/my', async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const employee = await Employee.findOne({ user: req.user._id });
     if (!employee) {
-      return res.status(404).json({ success: false, message: 'Employee not found' });
+      return res.json({ success: true, data: [] });
     }
 
     const benefits = await EmployeeBenefit.find({
@@ -267,6 +282,11 @@ router.post('/:id/terminate', authorize('super_admin', 'tenant_admin', 'hr_manag
 // Get benefit stats
 router.get('/stats/summary', authorize('super_admin', 'tenant_admin', 'hr_manager', 'hr_officer'), async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty stats
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: { byPlan: [], byStatus: [] } });
+    }
+
     const [planStats, statusStats] = await Promise.all([
       EmployeeBenefit.aggregate([
         { $match: { tenant: req.user.tenant, status: 'active' } },

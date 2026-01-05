@@ -13,6 +13,11 @@ router.use(tenantGuard);
 // Get all jobs
 router.get('/jobs', async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const { status, department, employmentType } = req.query;
     const query = { tenant: req.user.tenant };
 

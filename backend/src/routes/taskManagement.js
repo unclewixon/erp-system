@@ -23,6 +23,15 @@ router.use(tenantGuard);
 // @route   GET /api/task-management/projects
 router.get('/projects', async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({
+        success: true,
+        data: [],
+        pagination: { page: 1, limit: 20, total: 0, pages: 0 },
+      });
+    }
+
     const { status, type, search, page = 1, limit = 20 } = req.query;
 
     const query = {

@@ -17,6 +17,11 @@ router.use(tenantGuard);
 
 router.get('/categories', async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const categories = await EventCategory.find({
       tenant: req.user.tenant,
       isActive: true,
@@ -45,6 +50,11 @@ router.post('/categories', authorize('super_admin', 'tenant_admin', 'hr_manager'
 
 router.get('/', async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const { type, status, category, startDate, endDate, organizer, upcoming } = req.query;
     const query = { tenant: req.user.tenant };
 
@@ -78,6 +88,11 @@ router.get('/', async (req, res) => {
 
 router.get('/calendar', async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const { year, month } = req.query;
 
     const startOfMonth = new Date(year, month - 1, 1);

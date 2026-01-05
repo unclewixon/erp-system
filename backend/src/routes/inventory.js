@@ -49,6 +49,11 @@ const createAuditLog = async (req, action, entityType, entityId, entityNumber, e
 
 router.get('/warehouses', authorize('super_admin', 'tenant_admin', 'inventory_manager', 'warehouse_manager', 'store_keeper'), async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const { type, isActive } = req.query;
     const query = { tenant: req.user.tenant };
 

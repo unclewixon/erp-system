@@ -13,6 +13,11 @@ router.use(tenantGuard);
 // Get all templates
 router.get('/templates', authorize('super_admin', 'tenant_admin', 'hr_manager', 'hr_officer'), async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const templates = await OnboardingTemplate.find({ tenant: req.user.tenant, isActive: true })
       .populate('department', 'name')
       .populate('designation', 'title');
@@ -61,6 +66,11 @@ router.put('/templates/:id', authorize('super_admin', 'tenant_admin', 'hr_manage
 // Get all onboardings
 router.get('/', authorize('super_admin', 'tenant_admin', 'hr_manager', 'hr_officer'), async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const { status } = req.query;
     const query = { tenant: req.user.tenant };
 
@@ -81,9 +91,14 @@ router.get('/', authorize('super_admin', 'tenant_admin', 'hr_manager', 'hr_offic
 // Get my onboarding
 router.get('/my', async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty data
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: null });
+    }
+
     const employee = await Employee.findOne({ user: req.user._id });
     if (!employee) {
-      return res.status(404).json({ success: false, message: 'Employee not found' });
+      return res.json({ success: true, data: null });
     }
 
     const onboarding = await Onboarding.findOne({

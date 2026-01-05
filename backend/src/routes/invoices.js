@@ -11,6 +11,11 @@ router.use(tenantGuard);
 
 router.get('/customers', async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const customers = await Customer.find({
       tenant: req.user.tenant,
       isActive: true,
@@ -75,6 +80,11 @@ router.put('/customers/:id', authorize('super_admin', 'tenant_admin', 'finance_m
 
 router.get('/', authorize('super_admin', 'tenant_admin', 'finance_manager', 'finance_officer', 'sales_manager'), async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const { status, customer, startDate, endDate, type } = req.query;
     const query = { tenant: req.user.tenant };
 

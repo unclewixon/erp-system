@@ -12,6 +12,11 @@ router.use(tenantGuard);
 // Get all templates
 router.get('/templates', authorize('super_admin', 'tenant_admin', 'hr_manager'), async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const { module } = req.query;
     const query = { tenant: req.user.tenant };
 
@@ -85,6 +90,11 @@ router.delete('/templates/:id', authorize('super_admin', 'tenant_admin'), async 
 // Get all approval requests
 router.get('/approvals', authorize('super_admin', 'tenant_admin', 'hr_manager', 'finance_manager'), async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const { status, module } = req.query;
     const query = { tenant: req.user.tenant };
 

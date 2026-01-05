@@ -20,6 +20,11 @@ router.use(tenantGuard);
 
 router.get('/categories', async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const categories = await ProcurementCategory.find({
       tenant: req.user.tenant,
       isActive: true,
@@ -68,6 +73,11 @@ router.put('/categories/:id', authorize('super_admin', 'tenant_admin', 'procurem
 
 router.get('/requisitions', async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const { status, department, priority } = req.query;
     const query = { tenant: req.user.tenant };
 

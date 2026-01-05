@@ -11,6 +11,11 @@ router.use(tenantGuard);
 
 router.get('/categories', async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const categories = await ExpenseCategory.find({
       tenant: req.user.tenant,
       isActive: true,
@@ -57,6 +62,11 @@ router.put('/categories/:id', authorize('super_admin', 'tenant_admin', 'finance_
 
 router.get('/', authorize('super_admin', 'tenant_admin', 'finance_manager', 'finance_officer', 'hr_manager'), async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const { status, category, startDate, endDate } = req.query;
     const query = { tenant: req.user.tenant };
 

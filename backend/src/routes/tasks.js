@@ -11,6 +11,11 @@ router.use(tenantGuard);
 // Get all tasks
 router.get('/', async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const { status, priority, department, assignedTo, project } = req.query;
     const query = { tenant: req.user.tenant };
 
@@ -49,9 +54,14 @@ router.get('/', async (req, res) => {
 // Get my tasks
 router.get('/my', async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const employee = await Employee.findOne({ user: req.user._id });
     if (!employee) {
-      return res.status(404).json({ success: false, message: 'Employee not found' });
+      return res.json({ success: true, data: [] });
     }
 
     const tasks = await Task.find({

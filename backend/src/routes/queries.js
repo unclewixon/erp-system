@@ -11,6 +11,11 @@ router.use(tenantGuard);
 // Get all queries (HR view)
 router.get('/', authorize('super_admin', 'tenant_admin', 'hr_manager', 'hr_officer'), async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const { status, type, priority } = req.query;
     const query = { tenant: req.user.tenant };
 
@@ -33,9 +38,14 @@ router.get('/', authorize('super_admin', 'tenant_admin', 'hr_manager', 'hr_offic
 // Get my queries
 router.get('/my', async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const employee = await Employee.findOne({ user: req.user._id });
     if (!employee) {
-      return res.status(404).json({ success: false, message: 'Employee not found' });
+      return res.json({ success: true, data: [] });
     }
 
     const queries = await Query.find({
@@ -54,6 +64,11 @@ router.get('/my', async (req, res) => {
 // Get assigned queries
 router.get('/assigned', async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const queries = await Query.find({
       tenant: req.user.tenant,
       assignedTo: req.user._id,

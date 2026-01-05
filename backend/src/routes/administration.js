@@ -26,6 +26,11 @@ router.use(protect);
 // @route   GET /api/administration/settings
 router.get('/settings', tenantGuard, authorize('admin'), async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty object
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: {} });
+    }
+
     const { category } = req.query;
 
     const query = { tenant: req.user.tenant };

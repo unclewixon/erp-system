@@ -23,6 +23,11 @@ router.use(tenantGuard);
 // @route   GET /api/approvals/chains
 router.get('/chains', authorize('admin', 'hr'), async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const { category, isActive = true } = req.query;
 
     const query = { tenant: req.user.tenant };
@@ -136,6 +141,15 @@ router.delete('/chains/:id', authorize('admin'), async (req, res) => {
 // @route   GET /api/approvals/requests
 router.get('/requests', async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({
+        success: true,
+        data: [],
+        pagination: { page: 1, limit: 20, total: 0, pages: 0 },
+      });
+    }
+
     const { status, type, requester, page = 1, limit = 20 } = req.query;
 
     const query = { tenant: req.user.tenant };
@@ -172,6 +186,11 @@ router.get('/requests', async (req, res) => {
 // @route   GET /api/approvals/requests/pending
 router.get('/requests/pending', async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const requests = await ApprovalRequest.find({
       tenant: req.user.tenant,
       status: { $in: ['pending', 'in_progress'] },
@@ -192,6 +211,11 @@ router.get('/requests/pending', async (req, res) => {
 // @route   GET /api/approvals/requests/my-requests
 router.get('/requests/my-requests', async (req, res) => {
   try {
+    // Super Admin has no tenant or employee - return empty array
+    if (!req.user.tenant || !req.user.employee) {
+      return res.json({ success: true, data: [] });
+    }
+
     const { status } = req.query;
 
     const query = {
@@ -799,6 +823,11 @@ router.post('/limits', authorize('admin'), async (req, res) => {
 // @route   GET /api/approvals/queue
 router.get('/queue', async (req, res) => {
   try {
+    // Super Admin has no tenant or employee - return empty queue
+    if (!req.user.tenant || !req.user.employee) {
+      return res.json({ success: true, data: { requests: [], stats: { pending: 0, overdue: 0, urgent: 0 } } });
+    }
+
     let queue = await ApprovalQueue.findOne({
       tenant: req.user.tenant,
       approver: req.user.employee,
@@ -850,6 +879,19 @@ router.put('/queue/:requestId/read', async (req, res) => {
 // @route   GET /api/approvals/analytics
 router.get('/analytics', authorize('admin', 'hr', 'manager'), async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty analytics
+    if (!req.user.tenant) {
+      return res.json({
+        success: true,
+        data: {
+          statusBreakdown: [],
+          categoryBreakdown: [],
+          avgApprovalTime: 0,
+          topApprovers: [],
+        },
+      });
+    }
+
     const { startDate, endDate } = req.query;
 
     const dateFilter = { tenant: req.user.tenant };

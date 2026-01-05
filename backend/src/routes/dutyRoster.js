@@ -32,6 +32,11 @@ const validate = (req, res, next) => {
 // @access  Private/Admin/HR
 router.get('/links', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER), tenantGuard, async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const { month, year, department, status } = req.query;
     const filter = { tenant: req.user.tenant._id };
 

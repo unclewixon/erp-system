@@ -46,6 +46,11 @@ const createAssetAuditLog = async (req, action, asset, changes = {}, assetDetail
 
 router.get('/categories', async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const categories = await AssetCategory.find({
       tenant: req.user.tenant,
       isActive: true,
@@ -94,6 +99,11 @@ router.put('/categories/:id', authorize('super_admin', 'tenant_admin', 'asset_ma
 
 router.get('/', authorize('super_admin', 'tenant_admin', 'asset_manager', 'finance_manager', 'hr_manager'), async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const { category, status, department, branch, assignedTo, search } = req.query;
     const query = { tenant: req.user.tenant };
 
@@ -126,6 +136,21 @@ router.get('/', authorize('super_admin', 'tenant_admin', 'asset_manager', 'finan
 
 router.get('/summary', authorize('super_admin', 'tenant_admin', 'asset_manager', 'finance_manager'), async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty summary
+    if (!req.user.tenant) {
+      return res.json({
+        success: true,
+        data: {
+          byStatus: [],
+          byCategory: [],
+          byDepartment: [],
+          totals: { totalCost: 0, totalBookValue: 0, totalDepreciation: 0 },
+          maintenanceDue: 0,
+          warrantyExpiring: 0,
+        },
+      });
+    }
+
     const [
       statusSummary,
       categorySummary,

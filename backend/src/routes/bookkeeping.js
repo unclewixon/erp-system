@@ -11,6 +11,11 @@ router.use(tenantGuard);
 
 router.get('/accounts', authorize('super_admin', 'tenant_admin', 'finance_manager', 'finance_officer'), async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const { type, category } = req.query;
     const query = { tenant: req.user.tenant, isActive: true };
 
@@ -92,6 +97,11 @@ router.put('/accounts/:id', authorize('super_admin', 'tenant_admin', 'finance_ma
 
 router.get('/journals', authorize('super_admin', 'tenant_admin', 'finance_manager', 'finance_officer'), async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const { status, startDate, endDate, type } = req.query;
     const query = { tenant: req.user.tenant };
 
