@@ -30,227 +30,15 @@ router.get('/', authorize('super_admin', 'tenant_admin', 'finance_manager', 'fin
   }
 });
 
-router.get('/:id', authorize('super_admin', 'tenant_admin', 'finance_manager', 'finance_officer'), async (req, res) => {
-  try {
-    const wallet = await Wallet.findOne({
-      _id: req.params.id,
-      tenant: req.user.tenant,
-    })
-      .populate('custodian', 'firstName lastName email')
-      .populate('department', 'name');
-
-    if (!wallet) {
-      return res.status(404).json({ success: false, message: 'Wallet not found' });
-    }
-
-    res.json({ success: true, data: wallet });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-router.post('/', authorize('super_admin', 'tenant_admin', 'finance_manager'), async (req, res) => {
-  try {
-    const wallet = await Wallet.create({
-      ...req.body,
-      tenant: req.user.tenant,
-      createdBy: req.user._id,
-    });
-
-    res.status(201).json({ success: true, data: wallet });
-  } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
-  }
-});
-
-router.put('/:id', authorize('super_admin', 'tenant_admin', 'finance_manager'), async (req, res) => {
-  try {
-    const wallet = await Wallet.findOneAndUpdate(
-      { _id: req.params.id, tenant: req.user.tenant },
-      req.body,
-      { new: true, runValidators: true }
-    );
-
-    if (!wallet) {
-      return res.status(404).json({ success: false, message: 'Wallet not found' });
-    }
-
-    res.json({ success: true, data: wallet });
-  } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
-  }
-});
-
-// ============ WALLET TRANSACTIONS ============
-
-router.get('/:id/transactions', authorize('super_admin', 'tenant_admin', 'finance_manager', 'finance_officer'), async (req, res) => {
-  try {
-    const { startDate, endDate, type, limit = 50 } = req.query;
-    const query = { tenant: req.user.tenant, wallet: req.params.id };
-
-    if (type) query.type = type;
-    if (startDate || endDate) {
-      query.createdAt = {};
-      if (startDate) query.createdAt.$gte = new Date(startDate);
-      if (endDate) query.createdAt.$lte = new Date(endDate);
-    }
-
-    const transactions = await WalletTransaction.find(query)
-      .populate('createdBy', 'firstName lastName')
-      .sort({ createdAt: -1 })
-      .limit(parseInt(limit));
-
-    res.json({ success: true, data: transactions });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-router.post('/:id/deposit', authorize('super_admin', 'tenant_admin', 'finance_manager'), async (req, res) => {
-  try {
-    const wallet = await Wallet.findOne({
-      _id: req.params.id,
-      tenant: req.user.tenant,
-    });
-
-    if (!wallet) {
-      return res.status(404).json({ success: false, message: 'Wallet not found' });
-    }
-
-    const balanceBefore = wallet.balance;
-    wallet.balance += req.body.amount;
-
-    const transaction = await WalletTransaction.create({
-      tenant: req.user.tenant,
-      wallet: wallet._id,
-      type: 'credit',
-      category: 'deposit',
-      amount: req.body.amount,
-      balanceBefore,
-      balanceAfter: wallet.balance,
-      description: req.body.description,
-      reference: req.body.reference,
-      paymentMethod: req.body.paymentMethod,
-      createdBy: req.user._id,
-    });
-
-    await wallet.save();
-
-    res.json({ success: true, data: { wallet, transaction } });
-  } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
-  }
-});
-
-router.post('/:id/withdraw', authorize('super_admin', 'tenant_admin', 'finance_manager'), async (req, res) => {
-  try {
-    const wallet = await Wallet.findOne({
-      _id: req.params.id,
-      tenant: req.user.tenant,
-    });
-
-    if (!wallet) {
-      return res.status(404).json({ success: false, message: 'Wallet not found' });
-    }
-
-    if (wallet.balance < req.body.amount) {
-      return res.status(400).json({ success: false, message: 'Insufficient balance' });
-    }
-
-    const balanceBefore = wallet.balance;
-    wallet.balance -= req.body.amount;
-
-    const transaction = await WalletTransaction.create({
-      tenant: req.user.tenant,
-      wallet: wallet._id,
-      type: 'debit',
-      category: 'withdrawal',
-      amount: req.body.amount,
-      balanceBefore,
-      balanceAfter: wallet.balance,
-      description: req.body.description,
-      reference: req.body.reference,
-      paymentMethod: req.body.paymentMethod,
-      createdBy: req.user._id,
-    });
-
-    await wallet.save();
-
-    res.json({ success: true, data: { wallet, transaction } });
-  } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
-  }
-});
-
-router.post('/transfer', authorize('super_admin', 'tenant_admin', 'finance_manager'), async (req, res) => {
-  try {
-    const { fromWalletId, toWalletId, amount, description } = req.body;
-
-    const fromWallet = await Wallet.findOne({ _id: fromWalletId, tenant: req.user.tenant });
-    const toWallet = await Wallet.findOne({ _id: toWalletId, tenant: req.user.tenant });
-
-    if (!fromWallet || !toWallet) {
-      return res.status(404).json({ success: false, message: 'Wallet not found' });
-    }
-
-    if (fromWallet.balance < amount) {
-      return res.status(400).json({ success: false, message: 'Insufficient balance' });
-    }
-
-    const fromBalanceBefore = fromWallet.balance;
-    const toBalanceBefore = toWallet.balance;
-
-    fromWallet.balance -= amount;
-    toWallet.balance += amount;
-
-    // Create debit transaction
-    const debitTxn = await WalletTransaction.create({
-      tenant: req.user.tenant,
-      wallet: fromWallet._id,
-      type: 'debit',
-      category: 'transfer',
-      amount,
-      balanceBefore: fromBalanceBefore,
-      balanceAfter: fromWallet.balance,
-      description: `Transfer to ${toWallet.name}: ${description}`,
-      transferTo: toWallet._id,
-      createdBy: req.user._id,
-    });
-
-    // Create credit transaction
-    const creditTxn = await WalletTransaction.create({
-      tenant: req.user.tenant,
-      wallet: toWallet._id,
-      type: 'credit',
-      category: 'transfer',
-      amount,
-      balanceBefore: toBalanceBefore,
-      balanceAfter: toWallet.balance,
-      description: `Transfer from ${fromWallet.name}: ${description}`,
-      transferFrom: fromWallet._id,
-      createdBy: req.user._id,
-    });
-
-    await Promise.all([fromWallet.save(), toWallet.save()]);
-
-    res.json({
-      success: true,
-      data: {
-        fromWallet,
-        toWallet,
-        debitTransaction: debitTxn,
-        creditTransaction: creditTxn,
-      },
-    });
-  } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
-  }
-});
-
-// ============ FUND REQUESTS ============
+// ============ FUND REQUESTS (must come before /:id) ============
 
 router.get('/fund-requests', async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const { status } = req.query;
     const query = { tenant: req.user.tenant };
 
@@ -408,8 +196,23 @@ router.post('/fund-requests/:id/settle', async (req, res) => {
   }
 });
 
+// ============ STATS (must come before /:id) ============
+
 router.get('/stats/summary', authorize('super_admin', 'tenant_admin', 'finance_manager'), async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty stats
+    if (!req.user.tenant) {
+      return res.json({
+        success: true,
+        data: {
+          byType: [],
+          totalBalance: 0,
+          recentTransactions: [],
+          pendingRequests: 0,
+        },
+      });
+    }
+
     const [walletBalances, recentTransactions, pendingRequests] = await Promise.all([
       Wallet.aggregate([
         { $match: { tenant: req.user.tenant, isActive: true } },
@@ -449,6 +252,227 @@ router.get('/stats/summary', authorize('super_admin', 'tenant_admin', 'finance_m
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// ============ TRANSFER (must come before /:id) ============
+
+router.post('/transfer', authorize('super_admin', 'tenant_admin', 'finance_manager'), async (req, res) => {
+  try {
+    const { fromWalletId, toWalletId, amount, description } = req.body;
+
+    const fromWallet = await Wallet.findOne({ _id: fromWalletId, tenant: req.user.tenant });
+    const toWallet = await Wallet.findOne({ _id: toWalletId, tenant: req.user.tenant });
+
+    if (!fromWallet || !toWallet) {
+      return res.status(404).json({ success: false, message: 'Wallet not found' });
+    }
+
+    if (fromWallet.balance < amount) {
+      return res.status(400).json({ success: false, message: 'Insufficient balance' });
+    }
+
+    const fromBalanceBefore = fromWallet.balance;
+    const toBalanceBefore = toWallet.balance;
+
+    fromWallet.balance -= amount;
+    toWallet.balance += amount;
+
+    // Create debit transaction
+    const debitTxn = await WalletTransaction.create({
+      tenant: req.user.tenant,
+      wallet: fromWallet._id,
+      type: 'debit',
+      category: 'transfer',
+      amount,
+      balanceBefore: fromBalanceBefore,
+      balanceAfter: fromWallet.balance,
+      description: `Transfer to ${toWallet.name}: ${description}`,
+      transferTo: toWallet._id,
+      createdBy: req.user._id,
+    });
+
+    // Create credit transaction
+    const creditTxn = await WalletTransaction.create({
+      tenant: req.user.tenant,
+      wallet: toWallet._id,
+      type: 'credit',
+      category: 'transfer',
+      amount,
+      balanceBefore: toBalanceBefore,
+      balanceAfter: toWallet.balance,
+      description: `Transfer from ${fromWallet.name}: ${description}`,
+      transferFrom: fromWallet._id,
+      createdBy: req.user._id,
+    });
+
+    await Promise.all([fromWallet.save(), toWallet.save()]);
+
+    res.json({
+      success: true,
+      data: {
+        fromWallet,
+        toWallet,
+        debitTransaction: debitTxn,
+        creditTransaction: creditTxn,
+      },
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+// ============ WALLET BY ID (must come after specific routes) ============
+
+router.get('/:id', authorize('super_admin', 'tenant_admin', 'finance_manager', 'finance_officer'), async (req, res) => {
+  try {
+    const wallet = await Wallet.findOne({
+      _id: req.params.id,
+      tenant: req.user.tenant,
+    })
+      .populate('custodian', 'firstName lastName email')
+      .populate('department', 'name');
+
+    if (!wallet) {
+      return res.status(404).json({ success: false, message: 'Wallet not found' });
+    }
+
+    res.json({ success: true, data: wallet });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.post('/', authorize('super_admin', 'tenant_admin', 'finance_manager'), async (req, res) => {
+  try {
+    const wallet = await Wallet.create({
+      ...req.body,
+      tenant: req.user.tenant,
+      createdBy: req.user._id,
+    });
+
+    res.status(201).json({ success: true, data: wallet });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+router.put('/:id', authorize('super_admin', 'tenant_admin', 'finance_manager'), async (req, res) => {
+  try {
+    const wallet = await Wallet.findOneAndUpdate(
+      { _id: req.params.id, tenant: req.user.tenant },
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!wallet) {
+      return res.status(404).json({ success: false, message: 'Wallet not found' });
+    }
+
+    res.json({ success: true, data: wallet });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+// ============ WALLET TRANSACTIONS ============
+
+router.get('/:id/transactions', authorize('super_admin', 'tenant_admin', 'finance_manager', 'finance_officer'), async (req, res) => {
+  try {
+    const { startDate, endDate, type, limit = 50 } = req.query;
+    const query = { tenant: req.user.tenant, wallet: req.params.id };
+
+    if (type) query.type = type;
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) query.createdAt.$lte = new Date(endDate);
+    }
+
+    const transactions = await WalletTransaction.find(query)
+      .populate('createdBy', 'firstName lastName')
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit));
+
+    res.json({ success: true, data: transactions });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+router.post('/:id/deposit', authorize('super_admin', 'tenant_admin', 'finance_manager'), async (req, res) => {
+  try {
+    const wallet = await Wallet.findOne({
+      _id: req.params.id,
+      tenant: req.user.tenant,
+    });
+
+    if (!wallet) {
+      return res.status(404).json({ success: false, message: 'Wallet not found' });
+    }
+
+    const balanceBefore = wallet.balance;
+    wallet.balance += req.body.amount;
+
+    const transaction = await WalletTransaction.create({
+      tenant: req.user.tenant,
+      wallet: wallet._id,
+      type: 'credit',
+      category: 'deposit',
+      amount: req.body.amount,
+      balanceBefore,
+      balanceAfter: wallet.balance,
+      description: req.body.description,
+      reference: req.body.reference,
+      paymentMethod: req.body.paymentMethod,
+      createdBy: req.user._id,
+    });
+
+    await wallet.save();
+
+    res.json({ success: true, data: { wallet, transaction } });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+router.post('/:id/withdraw', authorize('super_admin', 'tenant_admin', 'finance_manager'), async (req, res) => {
+  try {
+    const wallet = await Wallet.findOne({
+      _id: req.params.id,
+      tenant: req.user.tenant,
+    });
+
+    if (!wallet) {
+      return res.status(404).json({ success: false, message: 'Wallet not found' });
+    }
+
+    if (wallet.balance < req.body.amount) {
+      return res.status(400).json({ success: false, message: 'Insufficient balance' });
+    }
+
+    const balanceBefore = wallet.balance;
+    wallet.balance -= req.body.amount;
+
+    const transaction = await WalletTransaction.create({
+      tenant: req.user.tenant,
+      wallet: wallet._id,
+      type: 'debit',
+      category: 'withdrawal',
+      amount: req.body.amount,
+      balanceBefore,
+      balanceAfter: wallet.balance,
+      description: req.body.description,
+      reference: req.body.reference,
+      paymentMethod: req.body.paymentMethod,
+      createdBy: req.user._id,
+    });
+
+    await wallet.save();
+
+    res.json({ success: true, data: { wallet, transaction } });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
   }
 });
 
