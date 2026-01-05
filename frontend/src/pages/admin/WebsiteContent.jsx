@@ -70,41 +70,56 @@ const createImage = (url) =>
     const image = new Image();
     image.addEventListener('load', () => resolve(image));
     image.addEventListener('error', (error) => reject(error));
-    image.crossOrigin = 'anonymous';
+    // Only set crossOrigin for non-data URLs (http/https)
+    if (!url.startsWith('data:')) {
+      image.crossOrigin = 'anonymous';
+    }
     image.src = url;
   });
 
 const getCroppedImg = async (imageSrc, pixelCrop) => {
-  const image = await createImage(imageSrc);
-  const canvas = document.createElement('canvas');
-  // Enable alpha channel explicitly
-  const ctx = canvas.getContext('2d', { alpha: true });
+  try {
+    const image = await createImage(imageSrc);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d', { alpha: true });
 
-  canvas.width = pixelCrop.width;
-  canvas.height = pixelCrop.height;
+    if (!ctx) {
+      throw new Error('Could not get canvas context');
+    }
 
-  // Clear canvas to fully transparent
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.width = pixelCrop.width;
+    canvas.height = pixelCrop.height;
 
-  // Draw image preserving transparency
-  ctx.drawImage(
-    image,
-    pixelCrop.x,
-    pixelCrop.y,
-    pixelCrop.width,
-    pixelCrop.height,
-    0,
-    0,
-    pixelCrop.width,
-    pixelCrop.height
-  );
+    // Clear canvas to fully transparent
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Use PNG to preserve transparency
-  return new Promise((resolve) => {
-    canvas.toBlob((blob) => {
-      resolve(blob);
-    }, 'image/png');
-  });
+    // Draw image preserving transparency
+    ctx.drawImage(
+      image,
+      pixelCrop.x,
+      pixelCrop.y,
+      pixelCrop.width,
+      pixelCrop.height,
+      0,
+      0,
+      pixelCrop.width,
+      pixelCrop.height
+    );
+
+    // Use PNG to preserve transparency
+    return new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (blob) {
+          resolve(blob);
+        } else {
+          reject(new Error('Canvas toBlob returned null'));
+        }
+      }, 'image/png');
+    });
+  } catch (error) {
+    console.error('getCroppedImg error:', error);
+    throw error;
+  }
 };
 
 const WebsiteContent = () => {
@@ -197,7 +212,12 @@ const WebsiteContent = () => {
 
     try {
       setUploading(true);
+
       const croppedBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
+
+      if (!croppedBlob) {
+        throw new Error('Failed to create cropped image');
+      }
 
       const formData = new FormData();
       formData.append('image', croppedBlob, 'hero-image.png');
@@ -206,7 +226,6 @@ const WebsiteContent = () => {
       const response = await axios.post(`${API_URL}/website-content/upload-image`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
-          // Note: Don't set Content-Type for FormData - axios sets it automatically with boundary
         },
       });
 
@@ -218,7 +237,7 @@ const WebsiteContent = () => {
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      toast.error('Failed to upload image');
+      toast.error(error.response?.data?.message || error.message || 'Failed to upload image');
     } finally {
       setUploading(false);
     }
