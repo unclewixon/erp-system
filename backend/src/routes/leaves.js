@@ -102,6 +102,14 @@ router.post('/types', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER), 
   body('code').notEmpty().withMessage('Leave type code is required'),
 ], validate, async (req, res) => {
   try {
+    // Super Admin has no tenant - cannot create tenant-specific data
+    if (!req.user.tenant) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot create leave types without a tenant context',
+      });
+    }
+
     const leaveType = await LeaveType.create({
       ...req.body,
       tenant: req.user.tenant._id,
@@ -132,6 +140,14 @@ router.post('/types', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER), 
 // @access  Private/Admin/HR
 router.put('/types/:id', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER), tenantGuard, async (req, res) => {
   try {
+    // Super Admin has no tenant - cannot update tenant-specific data
+    if (!req.user.tenant) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot update leave types without a tenant context',
+      });
+    }
+
     const leaveType = await LeaveType.findOneAndUpdate(
       { _id: req.params.id, tenant: req.user.tenant._id },
       req.body,
@@ -247,6 +263,11 @@ router.get('/balances/my', protect, tenantGuard, async (req, res) => {
 // @access  Private/HR
 router.get('/balances/:employeeId', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER, ROLES.HR_OFFICER), tenantGuard, async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const { year = new Date().getFullYear() } = req.query;
 
     const balances = await LeaveBalance.find({
@@ -457,6 +478,15 @@ router.get('/requests/my', protect, tenantGuard, async (req, res) => {
 // @access  Private/HR/Manager
 router.get('/requests/pending', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER, ROLES.HR_OFFICER, ROLES.DEPARTMENT_HEAD, ROLES.TEAM_LEAD), tenantGuard, async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({
+        success: true,
+        data: [],
+        pagination: { page: 1, limit: 20, total: 0, pages: 0 },
+      });
+    }
+
     const { page = 1, limit = 20 } = req.query;
 
     const query = {
@@ -507,6 +537,15 @@ router.get('/requests/pending', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_
 // @access  Private/HR
 router.get('/requests', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER, ROLES.HR_OFFICER), tenantGuard, async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({
+        success: true,
+        data: [],
+        pagination: { page: 1, limit: 20, total: 0, pages: 0 },
+      });
+    }
+
     const {
       status,
       employee,
@@ -576,6 +615,14 @@ router.post('/requests', protect, tenantGuard, [
   body('reason').notEmpty().withMessage('Reason is required'),
 ], validate, async (req, res) => {
   try {
+    // Super Admin has no tenant - cannot create leave requests
+    if (!req.user.tenant) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot create leave requests without a tenant context',
+      });
+    }
+
     const { leaveType, startDate, endDate, isHalfDay, halfDayType, reason, emergencyContact, handover } = req.body;
 
     const employee = await Employee.findOne({
