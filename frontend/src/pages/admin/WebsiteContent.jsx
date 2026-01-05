@@ -82,6 +82,10 @@ const getCroppedImg = async (imageSrc, pixelCrop) => {
   canvas.width = pixelCrop.width;
   canvas.height = pixelCrop.height;
 
+  // Fill with white background to prevent black areas when converting to JPEG
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
   ctx.drawImage(
     image,
     pixelCrop.x,
