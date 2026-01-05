@@ -9,7 +9,6 @@
   color: white;
   border: none;
   padding: 1rem 1.5rem;
-  border-radius: 50px;
   cursor: pointer;
   box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
   transition: transform 0.2s, box-shadow 0.2s;
@@ -41,8 +40,7 @@
   right: 24px;
   width: 380px;
   max-width: calc(100vw - 48px);
-  background: white;
-  border-radius: 16px;
+  background: var(--card-bg);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
   overflow: hidden;
   z-index: 9999;
@@ -115,7 +113,6 @@
         height: 32px;
         background: rgba(255, 255, 255, 0.1);
         border: none;
-        border-radius: 8px;
         color: white;
         cursor: pointer;
         display: flex;
@@ -170,12 +167,12 @@
     h3 {
       font-size: 1.25rem;
       font-weight: 700;
-      color: #111827;
+      color: var(--text-primary);
       margin-bottom: 0.5rem;
     }
 
     p {
-      color: #6b7280;
+      color: var(--text-secondary);
       font-size: 0.875rem;
       margin-bottom: 1.5rem;
     }
@@ -185,7 +182,6 @@
       color: white;
       border: none;
       padding: 0.875rem 2rem;
-      border-radius: 10px;
       font-weight: 600;
       cursor: pointer;
       transition: transform 0.2s, box-shadow 0.2s;
@@ -204,7 +200,7 @@
     flex-direction: column;
 
     p {
-      color: #6b7280;
+      color: var(--text-secondary);
       font-size: 0.875rem;
       margin-bottom: 1rem;
     }
@@ -215,10 +211,11 @@
       input {
         width: 100%;
         padding: 0.75rem;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid var(--border-color);
         font-size: 0.875rem;
         transition: border-color 0.2s;
+        background: var(--input-bg);
+        color: var(--text-primary);
 
         &:focus {
           outline: none;
@@ -226,7 +223,7 @@
         }
 
         &::placeholder {
-          color: #9ca3af;
+          color: var(--text-tertiary);
         }
       }
     }
@@ -236,7 +233,6 @@
       color: white;
       border: none;
       padding: 0.75rem;
-      border-radius: 8px;
       font-weight: 600;
       cursor: pointer;
       margin-top: auto;
@@ -251,7 +247,7 @@
     .btn-back {
       background: none;
       border: none;
-      color: #6b7280;
+      color: var(--text-secondary);
       padding: 0.75rem;
       cursor: pointer;
       font-size: 0.875rem;
@@ -269,6 +265,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    background: var(--bg-primary);
 
     .message {
       max-width: 80%;
@@ -281,7 +278,6 @@
         .message-content {
           background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
           color: white;
-          border-radius: 16px 16px 4px 16px;
         }
 
         .message-time {
@@ -293,9 +289,8 @@
         align-self: flex-start;
 
         .message-content {
-          background: #f3f4f6;
-          color: #111827;
-          border-radius: 16px 16px 16px 4px;
+          background: var(--bg-secondary);
+          color: var(--text-primary);
         }
       }
 
@@ -307,7 +302,7 @@
 
       .message-time {
         font-size: 0.625rem;
-        color: #9ca3af;
+        color: var(--text-tertiary);
         margin-top: 0.25rem;
         padding: 0 0.5rem;
       }
@@ -316,16 +311,17 @@
 
   .message-form {
     padding: 0.75rem;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid var(--border-color);
     display: flex;
     gap: 0.5rem;
 
     input {
       flex: 1;
       padding: 0.75rem;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
+      border: 1px solid var(--border-color);
       font-size: 0.875rem;
+      background: var(--input-bg);
+      color: var(--text-primary);
 
       &:focus {
         outline: none;
@@ -333,7 +329,7 @@
       }
 
       &::placeholder {
-        color: #9ca3af;
+        color: var(--text-tertiary);
       }
     }
 
@@ -342,7 +338,6 @@
       height: 40px;
       background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
       border: none;
-      border-radius: 8px;
       color: white;
       cursor: pointer;
       display: flex;

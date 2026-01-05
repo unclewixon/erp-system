@@ -26,7 +26,6 @@
           background: #fef3c7;
           color: #92400e;
           padding: 0.25rem 0.75rem;
-          border-radius: 20px;
           font-weight: 600;
         }
       }
@@ -59,7 +58,6 @@
     justify-content: center;
     padding: 4rem 2rem;
     background: var(--card-bg);
-    border-radius: 12px;
     box-shadow: var(--shadow-sm);
 
     .empty-icon {
@@ -102,7 +100,6 @@
     color: white;
     border: none;
     padding: 0.75rem 1.5rem;
-    border-radius: 8px;
     font-weight: 600;
     font-size: 0.875rem;
     cursor: pointer;
@@ -133,7 +130,6 @@
     color: var(--text-primary);
     border: 1px solid var(--border-color);
     padding: 0.75rem 1.5rem;
-    border-radius: 8px;
     font-weight: 600;
     font-size: 0.875rem;
     cursor: pointer;
@@ -160,7 +156,6 @@
 
   .plan-card {
     background: var(--card-bg);
-    border-radius: 12px;
     padding: 1.5rem;
     box-shadow: var(--shadow-sm);
     position: relative;
@@ -187,7 +182,6 @@
       background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
       color: white;
       padding: 0.25rem 1rem;
-      border-radius: 20px;
       font-size: 0.75rem;
       font-weight: 600;
     }
@@ -199,7 +193,6 @@
       background: var(--bg-secondary);
       color: var(--text-secondary);
       padding: 0.25rem 0.75rem;
-      border-radius: 20px;
       font-size: 0.625rem;
       font-weight: 600;
       text-transform: uppercase;
@@ -293,7 +286,6 @@
         justify-content: center;
         gap: 0.375rem;
         padding: 0.5rem;
-        border-radius: 6px;
         font-size: 0.75rem;
         font-weight: 500;
         cursor: pointer;
@@ -345,7 +337,6 @@
 
 .modal-content {
   background: var(--card-bg);
-  border-radius: 12px;
   width: 100%;
   max-width: 500px;
   max-height: 90vh;
@@ -375,7 +366,6 @@
       height: 32px;
       background: var(--bg-secondary);
       border: none;
-      border-radius: 8px;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -429,7 +419,6 @@
         width: 100%;
         padding: 0.75rem;
         border: 1px solid var(--border-color);
-        border-radius: 8px;
         font-size: 0.875rem;
         transition: border-color 0.2s;
         background: var(--input-bg);
@@ -527,7 +516,6 @@
     grid-template-columns: 350px 1fr;
     gap: 1.5rem;
     background: var(--card-bg);
-    border-radius: 12px;
     overflow: hidden;
     box-shadow: var(--shadow-sm);
     height: calc(100vh - 200px);
@@ -558,7 +546,6 @@
         display: flex;
         gap: 0.25rem;
         background: var(--bg-secondary);
-        border-radius: 8px;
         padding: 0.25rem;
 
         .filter-tab {
@@ -566,7 +553,6 @@
           padding: 0.5rem 0.75rem;
           border: none;
           background: transparent;
-          border-radius: 6px;
           font-size: 0.75rem;
           font-weight: 500;
           color: var(--text-secondary);
@@ -676,7 +662,6 @@
           .chat-status {
             font-size: 0.625rem;
             padding: 0.125rem 0.5rem;
-            border-radius: 10px;
             font-weight: 500;
 
             &.badge-warning {
@@ -790,7 +775,6 @@
         .status-badge {
           font-size: 0.75rem;
           padding: 0.25rem 0.75rem;
-          border-radius: 20px;
           font-weight: 500;
 
           &.badge-warning {
@@ -814,7 +798,6 @@
           border: 1px solid #fecaca;
           color: #dc2626;
           padding: 0.5rem 1rem;
-          border-radius: 6px;
           font-size: 0.75rem;
           font-weight: 500;
           cursor: pointer;
@@ -847,7 +830,6 @@
           .message-content {
             background: var(--bg-secondary);
             color: var(--text-primary);
-            border-radius: 16px 16px 16px 4px;
           }
         }
 
@@ -857,7 +839,6 @@
           .message-content {
             background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
             color: white;
-            border-radius: 16px 16px 4px 16px;
           }
 
           .message-time {
@@ -891,7 +872,6 @@
         flex: 1;
         padding: 0.75rem 1rem;
         border: 1px solid var(--border-color);
-        border-radius: 8px;
         font-size: 0.875rem;
         background: var(--input-bg);
         color: var(--text-primary);
@@ -911,7 +891,6 @@
         height: 44px;
         background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
         border: none;
-        border-radius: 8px;
         color: white;
         cursor: pointer;
         display: flex;
@@ -943,7 +922,6 @@
 
   .content-section {
     background: var(--card-bg);
-    border-radius: 12px;
     padding: 1.5rem;
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-color);
@@ -981,7 +959,6 @@
       width: 100%;
       padding: 0.625rem 0.75rem;
       border: 1px solid var(--border-color);
-      border-radius: 8px;
       font-size: 0.875rem;
       transition: border-color 0.2s;
       background: var(--input-bg);
@@ -1019,7 +996,6 @@
     gap: 0.75rem;
     background: var(--bg-secondary);
     padding: 0.75rem;
-    border-radius: 8px;
 
     .item-label {
       font-size: 0.75rem;
@@ -1032,7 +1008,6 @@
       flex: 1;
       padding: 0.5rem 0.75rem;
       border: 1px solid var(--border-color);
-      border-radius: 6px;
       font-size: 0.8125rem;
       background: var(--input-bg);
       color: var(--text-primary);
@@ -1058,7 +1033,6 @@
 
   .feature-item {
     background: var(--bg-secondary);
-    border-radius: 8px;
     padding: 1rem;
 
     .feature-header {
@@ -1092,7 +1066,6 @@
       width: 100%;
       padding: 0.5rem 0.75rem;
       border: 1px solid var(--border-color);
-      border-radius: 6px;
       font-size: 0.8125rem;
       margin-bottom: 0.5rem;
       background: var(--input-bg);
@@ -1122,7 +1095,6 @@
     gap: 0.75rem;
     background: var(--card-bg);
     padding: 1rem;
-    border-radius: 12px;
     box-shadow: var(--shadow-lg);
     border: 1px solid var(--border-color);
   }
@@ -1141,7 +1113,6 @@
       justify-content: center;
       padding: 3rem 2rem;
       border: 2px dashed var(--border-color);
-      border-radius: 12px;
       cursor: pointer;
       transition: all 0.2s;
       background: var(--bg-secondary);
@@ -1180,7 +1151,6 @@
         max-width: 300px;
         max-height: 400px;
         object-fit: contain;
-        border-radius: 12px;
         box-shadow: var(--shadow-md);
       }
 
@@ -1196,7 +1166,6 @@
     background: #ef4444;
     color: white;
     border: none;
-    border-radius: 8px;
     font-size: 0.8125rem;
     font-weight: 500;
     cursor: pointer;
@@ -1215,7 +1184,6 @@
 
   .feature-edit-item {
     background: var(--bg-secondary);
-    border-radius: 10px;
     padding: 1rem;
     border: 1px solid var(--border-color);
 
@@ -1252,7 +1220,6 @@
 
   .cropper-container {
     background: var(--card-bg);
-    border-radius: 16px;
     width: 100%;
     max-width: 600px;
     max-height: 90vh;
