@@ -430,7 +430,8 @@ const Settings = () => {
                 </div>
               </div>
 
-              <form onSubmit={handleOrgUpdate}>
+              <form onSubmit={handleOrgUpdate} className="organization-form">
+                <h3 className="section-title">Basic Information</h3>
                 <div className="form-row">
                   <div className="form-group">
                     <label>Organization Name</label>
@@ -438,6 +439,7 @@ const Settings = () => {
                       type="text"
                       value={orgData.name}
                       onChange={(e) => setOrgData({ ...orgData, name: e.target.value })}
+                      placeholder="Enter organization name"
                     />
                   </div>
                   <div className="form-group">
@@ -451,6 +453,7 @@ const Settings = () => {
                   </div>
                 </div>
 
+                <h3 className="section-title">Contact Information</h3>
                 <div className="form-row">
                   <div className="form-group">
                     <label>Email</label>
@@ -458,6 +461,7 @@ const Settings = () => {
                       type="email"
                       value={orgData.email}
                       onChange={(e) => setOrgData({ ...orgData, email: e.target.value })}
+                      placeholder="contact@organization.com"
                     />
                   </div>
                   <div className="form-group">
@@ -466,6 +470,7 @@ const Settings = () => {
                       type="text"
                       value={orgData.phone}
                       onChange={(e) => setOrgData({ ...orgData, phone: e.target.value })}
+                      placeholder="+1 (234) 567-8900"
                     />
                   </div>
                 </div>
@@ -481,6 +486,7 @@ const Settings = () => {
                       ...orgData,
                       address: { ...orgData.address, street: e.target.value }
                     })}
+                    placeholder="123 Main Street"
                   />
                 </div>
 
@@ -494,6 +500,7 @@ const Settings = () => {
                         ...orgData,
                         address: { ...orgData.address, city: e.target.value }
                       })}
+                      placeholder="City"
                     />
                   </div>
                   <div className="form-group">
@@ -505,6 +512,7 @@ const Settings = () => {
                         ...orgData,
                         address: { ...orgData.address, state: e.target.value }
                       })}
+                      placeholder="State/Province"
                     />
                   </div>
                 </div>
@@ -518,6 +526,7 @@ const Settings = () => {
                       ...orgData,
                       address: { ...orgData.address, country: e.target.value }
                     })}
+                    placeholder="Country"
                   />
                 </div>
 
