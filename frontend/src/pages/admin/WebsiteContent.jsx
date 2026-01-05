@@ -77,12 +77,16 @@ const createImage = (url) =>
 const getCroppedImg = async (imageSrc, pixelCrop) => {
   const image = await createImage(imageSrc);
   const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
+  // Enable alpha channel explicitly
+  const ctx = canvas.getContext('2d', { alpha: true });
 
   canvas.width = pixelCrop.width;
   canvas.height = pixelCrop.height;
 
-  // Draw image preserving transparency (no background fill)
+  // Clear canvas to fully transparent
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw image preserving transparency
   ctx.drawImage(
     image,
     pixelCrop.x,
