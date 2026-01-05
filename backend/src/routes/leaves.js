@@ -68,6 +68,14 @@ const calculateWorkingDays = async (startDate, endDate, tenantId, excludeWeekend
 // @access  Private
 router.get('/types', protect, tenantGuard, async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({
+        success: true,
+        data: [],
+      });
+    }
+
     const leaveTypes = await LeaveType.find({
       tenant: req.user.tenant._id,
       isActive: true,
@@ -193,6 +201,14 @@ router.delete('/types/:id', protect, authorize(ROLES.TENANT_ADMIN), tenantGuard,
 // @access  Private
 router.get('/balances/my', protect, tenantGuard, async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({
+        success: true,
+        data: [],
+      });
+    }
+
     const { year = new Date().getFullYear() } = req.query;
 
     const employee = await Employee.findOne({
@@ -377,6 +393,15 @@ router.put('/balances/:id/adjust', protect, authorize(ROLES.TENANT_ADMIN, ROLES.
 // @access  Private
 router.get('/requests/my', protect, tenantGuard, async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({
+        success: true,
+        data: [],
+        pagination: { page: 1, limit: 20, total: 0, pages: 0 },
+      });
+    }
+
     const { status, year, page = 1, limit = 20 } = req.query;
 
     const employee = await Employee.findOne({
@@ -894,6 +919,14 @@ router.put('/requests/:id/cancel', protect, tenantGuard, async (req, res) => {
 // @access  Private
 router.get('/holidays', protect, tenantGuard, async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({
+        success: true,
+        data: [],
+      });
+    }
+
     const { year = new Date().getFullYear() } = req.query;
 
     const holidays = await Holiday.find({

@@ -267,6 +267,14 @@ router.post('/clock-out', protect, tenantGuard, [
 // @access  Private
 router.get('/today', protect, tenantGuard, async (req, res) => {
   try {
+    // Super Admin has no tenant - return null
+    if (!req.user.tenant) {
+      return res.json({
+        success: true,
+        data: null,
+      });
+    }
+
     const employee = await Employee.findOne({
       user: req.user._id,
       tenant: req.user.tenant._id,
@@ -305,6 +313,20 @@ router.get('/today', protect, tenantGuard, async (req, res) => {
 // @access  Private
 router.get('/my-history', protect, tenantGuard, async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty history
+    if (!req.user.tenant) {
+      return res.json({
+        success: true,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 30,
+          total: 0,
+          pages: 0,
+        },
+      });
+    }
+
     const { startDate, endDate, page = 1, limit = 30 } = req.query;
 
     const employee = await Employee.findOne({
@@ -361,6 +383,20 @@ router.get('/my-history', protect, tenantGuard, async (req, res) => {
 // @access  Private/HR
 router.get('/', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER, ROLES.HR_OFFICER), tenantGuard, async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty data
+    if (!req.user.tenant) {
+      return res.json({
+        success: true,
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 50,
+          total: 0,
+          pages: 0,
+        },
+      });
+    }
+
     const {
       date,
       startDate,
@@ -428,6 +464,21 @@ router.get('/', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER, ROLES.H
 // @access  Private/HR
 router.get('/summary', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER, ROLES.HR_OFFICER), tenantGuard, async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty summary
+    if (!req.user.tenant) {
+      return res.json({
+        success: true,
+        data: {
+          byStatus: [],
+          daily: [],
+          period: {
+            start: new Date(),
+            end: new Date(),
+          },
+        },
+      });
+    }
+
     const { startDate, endDate, department, branch } = req.query;
 
     const start = startDate ? new Date(startDate) : new Date(new Date().setDate(1));

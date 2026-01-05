@@ -11,6 +11,11 @@ router.use(tenantGuard);
 
 router.get('/vendors', async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const vendors = await Vendor.find({
       tenant: req.user.tenant,
       isActive: true,
@@ -75,6 +80,11 @@ router.put('/vendors/:id', authorize('super_admin', 'tenant_admin', 'finance_man
 
 router.get('/', authorize('super_admin', 'tenant_admin', 'finance_manager', 'finance_officer'), async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const { status, vendor, startDate, endDate } = req.query;
     const query = { tenant: req.user.tenant };
 
@@ -208,6 +218,11 @@ router.post('/:id/payments', authorize('super_admin', 'tenant_admin', 'finance_m
 
 router.get('/purchase-orders', authorize('super_admin', 'tenant_admin', 'finance_manager', 'finance_officer'), async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty array
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const { status, vendor } = req.query;
     const query = { tenant: req.user.tenant };
 
@@ -323,6 +338,18 @@ router.post('/purchase-orders/:id/receive', authorize('super_admin', 'tenant_adm
 
 router.get('/stats/summary', authorize('super_admin', 'tenant_admin', 'finance_manager'), async (req, res) => {
   try {
+    // Super Admin has no tenant - return empty stats
+    if (!req.user.tenant) {
+      return res.json({
+        success: true,
+        data: {
+          byStatus: [],
+          overdue: { count: 0, total: 0 },
+          topVendors: [],
+        },
+      });
+    }
+
     const [billStats, overdueStats, vendorStats] = await Promise.all([
       Bill.aggregate([
         { $match: { tenant: req.user.tenant } },

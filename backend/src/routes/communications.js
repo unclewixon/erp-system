@@ -12,6 +12,7 @@ import {
   AutoReply,
   BroadcastList,
 } from '../models/Communication.js';
+import { SystemAnnouncement } from '../models/Administration.js';
 import MessagingService from '../services/messaging/index.js';
 import MessageScheduler from '../services/messaging/scheduler.js';
 
@@ -19,6 +20,59 @@ const router = express.Router();
 
 router.use(protect);
 router.use(tenantGuard);
+
+// ============ ANNOUNCEMENTS ============
+// Announcements route for dashboard and general access
+
+router.get('/announcements', async (req, res) => {
+  try {
+    // Super Admin has no tenant - return global announcements only
+    if (!req.user.tenant) {
+      const announcements = await SystemAnnouncement.find({
+        isGlobal: true,
+        isPublished: true,
+        publishAt: { $lte: new Date() },
+        $or: [
+          { expiresAt: { $exists: false } },
+          { expiresAt: null },
+          { expiresAt: { $gt: new Date() } },
+        ],
+      })
+        .populate('createdBy', 'firstName lastName')
+        .sort('-isPinned -priority -publishAt');
+
+      return res.json({ success: true, data: announcements });
+    }
+
+    const { includeExpired } = req.query;
+
+    const query = {
+      $or: [{ tenant: req.user.tenant }, { isGlobal: true }],
+      isPublished: true,
+      publishAt: { $lte: new Date() },
+    };
+
+    if (includeExpired !== 'true') {
+      query.$and = [
+        {
+          $or: [
+            { expiresAt: { $exists: false } },
+            { expiresAt: null },
+            { expiresAt: { $gt: new Date() } },
+          ],
+        },
+      ];
+    }
+
+    const announcements = await SystemAnnouncement.find(query)
+      .populate('createdBy', 'firstName lastName')
+      .sort('-isPinned -priority -publishAt');
+
+    res.json({ success: true, data: announcements });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
 
 // ============ CHANNELS ============
 

@@ -241,12 +241,34 @@ router.get('/admin/waiting', protect, authorize(ROLES.SUPER_ADMIN, ROLES.TENANT_
   }
 });
 
-// @route   POST /api/live-chat/admin/:chatId/assign
+// @route   GET /api/live-chat/admin/waiting-count
+// @desc    Get waiting chats count (alias for frontend)
+// @access  Private (Admin only)
+router.get('/admin/waiting-count', protect, authorize(ROLES.SUPER_ADMIN, ROLES.TENANT_ADMIN), async (req, res) => {
+  try {
+    const count = await LiveChat.countDocuments({ status: 'waiting' });
+
+    res.json({
+      success: true,
+      data: {
+        count,
+      },
+    });
+  } catch (error) {
+    console.error('Get waiting count error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+    });
+  }
+});
+
+// @route   POST /api/live-chat/admin/:sessionId/assign
 // @desc    Assign chat to admin
 // @access  Private (Admin only)
-router.post('/admin/:chatId/assign', protect, authorize(ROLES.SUPER_ADMIN, ROLES.TENANT_ADMIN), async (req, res) => {
+router.post('/admin/:sessionId/assign', protect, authorize(ROLES.SUPER_ADMIN, ROLES.TENANT_ADMIN), async (req, res) => {
   try {
-    const chat = await LiveChat.findById(req.params.chatId);
+    const chat = await LiveChat.findOne({ sessionId: req.params.sessionId });
 
     if (!chat) {
       return res.status(404).json({
@@ -273,13 +295,13 @@ router.post('/admin/:chatId/assign', protect, authorize(ROLES.SUPER_ADMIN, ROLES
   }
 });
 
-// @route   POST /api/live-chat/admin/:chatId/reply
+// @route   POST /api/live-chat/admin/:sessionId/reply
 // @desc    Admin reply to chat
 // @access  Private (Admin only)
-router.post('/admin/:chatId/reply', protect, authorize(ROLES.SUPER_ADMIN, ROLES.TENANT_ADMIN), async (req, res) => {
+router.post('/admin/:sessionId/reply', protect, authorize(ROLES.SUPER_ADMIN, ROLES.TENANT_ADMIN), async (req, res) => {
   try {
     const { content } = req.body;
-    const chat = await LiveChat.findById(req.params.chatId);
+    const chat = await LiveChat.findOne({ sessionId: req.params.sessionId });
 
     if (!chat) {
       return res.status(404).json({
@@ -326,12 +348,12 @@ router.post('/admin/:chatId/reply', protect, authorize(ROLES.SUPER_ADMIN, ROLES.
   }
 });
 
-// @route   POST /api/live-chat/admin/:chatId/close
+// @route   POST /api/live-chat/admin/:sessionId/close
 // @desc    Admin close chat
 // @access  Private (Admin only)
-router.post('/admin/:chatId/close', protect, authorize(ROLES.SUPER_ADMIN, ROLES.TENANT_ADMIN), async (req, res) => {
+router.post('/admin/:sessionId/close', protect, authorize(ROLES.SUPER_ADMIN, ROLES.TENANT_ADMIN), async (req, res) => {
   try {
-    const chat = await LiveChat.findById(req.params.chatId);
+    const chat = await LiveChat.findOne({ sessionId: req.params.sessionId });
 
     if (!chat) {
       return res.status(404).json({
