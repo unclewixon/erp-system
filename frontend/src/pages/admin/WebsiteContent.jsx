@@ -200,7 +200,7 @@ const WebsiteContent = () => {
       const response = await axios.post(`${API_URL}/website-content/upload-image`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
+          // Note: Don't set Content-Type for FormData - axios sets it automatically with boundary
         },
       });
 
