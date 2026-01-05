@@ -82,14 +82,16 @@ app.set('io', io);
 // Security middleware
 app.use(helmet());
 
-// Rate limiting - more lenient in development
+// Rate limiting - generous limits for SPA usage
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'development' ? 1000 : 100,
+  max: 1000, // Allow 1000 requests per 15 minutes
   message: {
     success: false,
     message: 'Too many requests, please try again later.',
   },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 app.use('/api/', limiter);
 
