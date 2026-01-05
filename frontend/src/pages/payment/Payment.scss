@@ -281,8 +281,8 @@
 
 // Subscription Page
 .subscription-page {
-  padding: 2rem 1.5rem;
-  max-width: 1400px;
+  padding: 2rem 2rem;
+  max-width: 1600px;
   margin: 0 auto;
   flex: 1;
   width: 100%;
@@ -497,8 +497,8 @@
   // Plans Grid - Following SMS Billing.jsx pattern
   .plans-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
   }
 
   // Plan Card - Clean, no border-radius

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
+import { PlanCard } from '../../components/common';
 import './Payment.scss';
 
 const Subscription = () => {
@@ -259,67 +260,17 @@ const Subscription = () => {
         {plans.map((plan) => {
           const isCurrentPlan = subscription?.plan?._id === plan._id ||
                                subscription?.plan?.slug === plan.slug;
-          const price = billingCycle === 'yearly' ? plan.price?.yearly : plan.price?.monthly;
 
           return (
-            <div
+            <PlanCard
               key={plan._id}
-              className={`plan-card ${plan.isPopular ? 'popular' : ''} ${isCurrentPlan ? 'current' : ''}`}
-            >
-              {plan.isPopular && <div className="popular-badge">Most Popular</div>}
-              {isCurrentPlan && <div className="current-badge">Current Plan</div>}
-
-              <div className="plan-header">
-                <h3>{plan.name}</h3>
-                <p className="plan-description">{plan.description}</p>
-              </div>
-
-              <div className="plan-pricing">
-                <div className="price">
-                  {plan.isEnterprise ? (
-                    <span className="amount">Custom</span>
-                  ) : (
-                    <>
-                      <span className="amount">{formatPrice(price || 0)}</span>
-                      <span className="period">/{billingCycle === 'yearly' ? 'year' : 'month'}</span>
-                    </>
-                  )}
-                </div>
-                <p className="employee-range">{getEmployeeRange(plan)}</p>
-              </div>
-
-              <div className="plan-features">
-                <ul className="features-list">
-                  {plan.features?.filter(f => f.included).slice(0, 8).map((feature, idx) => (
-                    <li key={idx} className="feature-item">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span>{feature.name || feature.featureSlug?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Feature'}</span>
-                    </li>
-                  ))}
-                  {plan.features?.filter(f => f.included).length > 8 && (
-                    <li className="feature-item more">
-                      <span>+{plan.features.filter(f => f.included).length - 8} more features</span>
-                    </li>
-                  )}
-                </ul>
-              </div>
-
-              <button
-                className={`btn-subscribe ${plan.isPopular ? 'primary' : 'secondary'}`}
-                onClick={() => handleSubscribe(plan)}
-                disabled={processingPlan === plan._id || isCurrentPlan}
-              >
-                {processingPlan === plan._id
-                  ? 'Processing...'
-                  : isCurrentPlan
-                  ? 'Current Plan'
-                  : plan.isEnterprise
-                  ? 'Contact Sales'
-                  : 'Subscribe'}
-              </button>
-            </div>
+              plan={plan}
+              isCurrentPlan={isCurrentPlan}
+              billingCycle={billingCycle}
+              onSubscribe={handleSubscribe}
+              processing={processingPlan === plan._id}
+              formatPrice={formatPrice}
+            />
           );
         })}
       </div>
