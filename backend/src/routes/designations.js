@@ -23,9 +23,15 @@ const validate = (req, res, next) => {
 // @access  Private
 router.get('/', protect, tenantGuard, async (req, res) => {
   try {
-    const { search, department, level, isActive } = req.query;
+    const { search, department, level, isActive, tenant } = req.query;
 
-    const query = { tenant: req.user.tenant._id };
+    // Super Admin can see all or filter by tenant query param
+    const query = {};
+    if (req.user.tenant) {
+      query.tenant = req.user.tenant._id;
+    } else if (tenant) {
+      query.tenant = tenant;
+    }
 
     if (search) {
       query.$or = [
@@ -77,10 +83,12 @@ router.get('/', protect, tenantGuard, async (req, res) => {
 // @access  Private
 router.get('/:id', protect, tenantGuard, async (req, res) => {
   try {
-    const designation = await Designation.findOne({
-      _id: req.params.id,
-      tenant: req.user.tenant._id,
-    }).populate('department', 'name code');
+    const query = { _id: req.params.id };
+    if (req.user.tenant) {
+      query.tenant = req.user.tenant._id;
+    }
+
+    const designation = await Designation.findOne(query).populate('department', 'name code');
 
     if (!designation) {
       return res.status(404).json({
@@ -113,14 +121,22 @@ router.get('/:id', protect, tenantGuard, async (req, res) => {
 // @route   POST /api/designations
 // @desc    Create new designation
 // @access  Private/TenantAdmin/HRManager
-router.post('/', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER), tenantGuard, [
+router.post('/', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER, ROLES.SUPER_ADMIN), tenantGuard, [
   body('name').notEmpty().withMessage('Designation name is required'),
   body('code').notEmpty().withMessage('Designation code is required'),
 ], validate, async (req, res) => {
   try {
+    const tenantId = req.user.tenant?._id || req.body.tenant;
+    if (!tenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tenant is required',
+      });
+    }
+
     const designationData = {
       ...req.body,
-      tenant: req.user.tenant._id,
+      tenant: tenantId,
     };
 
     const designation = await Designation.create(designationData);
@@ -151,12 +167,14 @@ router.post('/', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER), tenan
 // @route   PUT /api/designations/:id
 // @desc    Update designation
 // @access  Private/TenantAdmin/HRManager
-router.put('/:id', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER), tenantGuard, async (req, res) => {
+router.put('/:id', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER, ROLES.SUPER_ADMIN), tenantGuard, async (req, res) => {
   try {
-    let designation = await Designation.findOne({
-      _id: req.params.id,
-      tenant: req.user.tenant._id,
-    });
+    const query = { _id: req.params.id };
+    if (req.user.tenant) {
+      query.tenant = req.user.tenant._id;
+    }
+
+    let designation = await Designation.findOne(query);
 
     if (!designation) {
       return res.status(404).json({
@@ -194,12 +212,14 @@ router.put('/:id', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER), ten
 // @route   DELETE /api/designations/:id
 // @desc    Delete designation
 // @access  Private/TenantAdmin
-router.delete('/:id', protect, authorize(ROLES.TENANT_ADMIN), tenantGuard, async (req, res) => {
+router.delete('/:id', protect, authorize(ROLES.TENANT_ADMIN, ROLES.SUPER_ADMIN), tenantGuard, async (req, res) => {
   try {
-    const designation = await Designation.findOne({
-      _id: req.params.id,
-      tenant: req.user.tenant._id,
-    });
+    const query = { _id: req.params.id };
+    if (req.user.tenant) {
+      query.tenant = req.user.tenant._id;
+    }
+
+    const designation = await Designation.findOne(query);
 
     if (!designation) {
       return res.status(404).json({

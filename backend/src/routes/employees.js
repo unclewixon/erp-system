@@ -39,9 +39,16 @@ router.get('/', protect, tenantGuard, async (req, res) => {
       designation,
       status,
       employmentType,
+      tenant,
     } = req.query;
 
-    const query = { tenant: req.user.tenant._id };
+    // Super Admin can see all or filter by tenant query param
+    const query = {};
+    if (req.user.tenant) {
+      query.tenant = req.user.tenant._id;
+    } else if (tenant) {
+      query.tenant = tenant;
+    }
 
     if (search) {
       query.$or = [
@@ -94,9 +101,15 @@ router.get('/', protect, tenantGuard, async (req, res) => {
 // @access  Private
 router.get('/directory', protect, tenantGuard, async (req, res) => {
   try {
-    const { search, department, branch } = req.query;
+    const { search, department, branch, tenant } = req.query;
 
-    const query = { tenant: req.user.tenant._id, isActive: true };
+    // Super Admin can see all or filter by tenant query param
+    const query = { isActive: true };
+    if (req.user.tenant) {
+      query.tenant = req.user.tenant._id;
+    } else if (tenant) {
+      query.tenant = tenant;
+    }
 
     if (search) {
       query.$or = [
@@ -134,10 +147,14 @@ router.get('/directory', protect, tenantGuard, async (req, res) => {
 // @access  Private
 router.get('/org-chart', protect, tenantGuard, async (req, res) => {
   try {
-    const employees = await Employee.find({
-      tenant: req.user.tenant._id,
-      isActive: true,
-    })
+    const query = { isActive: true };
+    if (req.user.tenant) {
+      query.tenant = req.user.tenant._id;
+    } else if (req.query.tenant) {
+      query.tenant = req.query.tenant;
+    }
+
+    const employees = await Employee.find(query)
       .select('firstName lastName employeeId avatar designation department reportsTo')
       .populate('designation', 'name level')
       .populate('department', 'name');
@@ -175,7 +192,20 @@ router.get('/org-chart', protect, tenantGuard, async (req, res) => {
 // @access  Private
 router.get('/stats', protect, tenantGuard, async (req, res) => {
   try {
-    const tenantId = req.user.tenant._id;
+    const tenantId = req.user.tenant?._id || req.query.tenant;
+    if (!tenantId) {
+      return res.json({
+        success: true,
+        data: {
+          totalEmployees: 0,
+          activeEmployees: 0,
+          onLeaveEmployees: 0,
+          departmentStats: [],
+          employmentTypeStats: [],
+          recentHires: [],
+        },
+      });
+    }
 
     const [
       totalEmployees,
@@ -238,10 +268,12 @@ router.get('/stats', protect, tenantGuard, async (req, res) => {
 // @access  Private
 router.get('/:id', protect, tenantGuard, async (req, res) => {
   try {
-    const employee = await Employee.findOne({
-      _id: req.params.id,
-      tenant: req.user.tenant._id,
-    })
+    const query = { _id: req.params.id };
+    if (req.user.tenant) {
+      query.tenant = req.user.tenant._id;
+    }
+
+    const employee = await Employee.findOne(query)
       .populate('department', 'name code')
       .populate('branch', 'name code address')
       .populate('designation', 'name code level salaryGrade')
@@ -272,7 +304,7 @@ router.get('/:id', protect, tenantGuard, async (req, res) => {
 // @route   POST /api/employees
 // @desc    Create new employee
 // @access  Private/TenantAdmin/HRManager/HROfficer
-router.post('/', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER, ROLES.HR_OFFICER), tenantGuard, [
+router.post('/', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER, ROLES.HR_OFFICER, ROLES.SUPER_ADMIN), tenantGuard, [
   body('firstName').notEmpty().withMessage('First name is required'),
   body('lastName').notEmpty().withMessage('Last name is required'),
   body('email').isEmail().withMessage('Please provide a valid email'),
@@ -282,7 +314,15 @@ router.post('/', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER, ROLES.
   body('hireDate').notEmpty().withMessage('Hire date is required'),
 ], validate, async (req, res) => {
   try {
-    const tenant = await Tenant.findById(req.user.tenant._id);
+    const tenantId = req.user.tenant?._id || req.body.tenant;
+    if (!tenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tenant is required',
+      });
+    }
+
+    const tenant = await Tenant.findById(tenantId);
 
     // Check employee limit
     const currentEmployeeCount = await Employee.countDocuments({ tenant: tenant._id });
@@ -368,12 +408,14 @@ router.post('/', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER, ROLES.
 // @route   PUT /api/employees/:id
 // @desc    Update employee
 // @access  Private/TenantAdmin/HRManager/HROfficer
-router.put('/:id', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER, ROLES.HR_OFFICER), tenantGuard, async (req, res) => {
+router.put('/:id', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER, ROLES.HR_OFFICER, ROLES.SUPER_ADMIN), tenantGuard, async (req, res) => {
   try {
-    let employee = await Employee.findOne({
-      _id: req.params.id,
-      tenant: req.user.tenant._id,
-    });
+    const query = { _id: req.params.id };
+    if (req.user.tenant) {
+      query.tenant = req.user.tenant._id;
+    }
+
+    let employee = await Employee.findOne(query);
 
     if (!employee) {
       return res.status(404).json({
@@ -421,14 +463,16 @@ router.put('/:id', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER, ROLE
 // @route   PUT /api/employees/:id/status
 // @desc    Update employee status
 // @access  Private/TenantAdmin/HRManager
-router.put('/:id/status', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER), tenantGuard, [
+router.put('/:id/status', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER, ROLES.SUPER_ADMIN), tenantGuard, [
   body('status').isIn(Object.values(EMPLOYEE_STATUS)).withMessage('Invalid status'),
 ], validate, async (req, res) => {
   try {
-    const employee = await Employee.findOne({
-      _id: req.params.id,
-      tenant: req.user.tenant._id,
-    });
+    const query = { _id: req.params.id };
+    if (req.user.tenant) {
+      query.tenant = req.user.tenant._id;
+    }
+
+    const employee = await Employee.findOne(query);
 
     if (!employee) {
       return res.status(404).json({
@@ -468,12 +512,14 @@ router.put('/:id/status', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGE
 // @route   DELETE /api/employees/:id
 // @desc    Delete employee (soft delete)
 // @access  Private/TenantAdmin
-router.delete('/:id', protect, authorize(ROLES.TENANT_ADMIN), tenantGuard, async (req, res) => {
+router.delete('/:id', protect, authorize(ROLES.TENANT_ADMIN, ROLES.SUPER_ADMIN), tenantGuard, async (req, res) => {
   try {
-    const employee = await Employee.findOne({
-      _id: req.params.id,
-      tenant: req.user.tenant._id,
-    });
+    const query = { _id: req.params.id };
+    if (req.user.tenant) {
+      query.tenant = req.user.tenant._id;
+    }
+
+    const employee = await Employee.findOne(query);
 
     if (!employee) {
       return res.status(404).json({

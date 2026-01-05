@@ -23,9 +23,15 @@ const validate = (req, res, next) => {
 // @access  Private
 router.get('/', protect, tenantGuard, async (req, res) => {
   try {
-    const { search, isActive } = req.query;
+    const { search, isActive, tenant } = req.query;
 
-    const query = { tenant: req.user.tenant._id };
+    // Super Admin can see all or filter by tenant query param
+    const query = {};
+    if (req.user.tenant) {
+      query.tenant = req.user.tenant._id;
+    } else if (tenant) {
+      query.tenant = tenant;
+    }
 
     if (search) {
       query.$or = [
@@ -77,10 +83,12 @@ router.get('/', protect, tenantGuard, async (req, res) => {
 // @access  Private
 router.get('/:id', protect, tenantGuard, async (req, res) => {
   try {
-    const branch = await Branch.findOne({
-      _id: req.params.id,
-      tenant: req.user.tenant._id,
-    }).populate('manager', 'firstName lastName employeeId email');
+    const query = { _id: req.params.id };
+    if (req.user.tenant) {
+      query.tenant = req.user.tenant._id;
+    }
+
+    const branch = await Branch.findOne(query).populate('manager', 'firstName lastName employeeId email');
 
     if (!branch) {
       return res.status(404).json({
@@ -113,25 +121,33 @@ router.get('/:id', protect, tenantGuard, async (req, res) => {
 // @route   POST /api/branches
 // @desc    Create new branch
 // @access  Private/TenantAdmin/HRManager
-router.post('/', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER), tenantGuard, [
+router.post('/', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER, ROLES.SUPER_ADMIN), tenantGuard, [
   body('name').notEmpty().withMessage('Branch name is required'),
   body('code').notEmpty().withMessage('Branch code is required'),
 ], validate, async (req, res) => {
   try {
-    const tenant = req.user.tenant;
-
-    // Check branch limit
-    const currentBranchCount = await Branch.countDocuments({ tenant: tenant._id });
-    if (tenant.subscription.maxBranches !== -1 && currentBranchCount >= tenant.subscription.maxBranches) {
+    const tenantId = req.user.tenant?._id || req.body.tenant;
+    if (!tenantId) {
       return res.status(400).json({
         success: false,
-        message: `Branch limit reached. Your plan allows ${tenant.subscription.maxBranches} branches.`,
+        message: 'Tenant is required',
       });
+    }
+
+    // Check branch limit (skip for Super Admin or if no tenant subscription info)
+    if (req.user.tenant?.subscription) {
+      const currentBranchCount = await Branch.countDocuments({ tenant: tenantId });
+      if (req.user.tenant.subscription.maxBranches !== -1 && currentBranchCount >= req.user.tenant.subscription.maxBranches) {
+        return res.status(400).json({
+          success: false,
+          message: `Branch limit reached. Your plan allows ${req.user.tenant.subscription.maxBranches} branches.`,
+        });
+      }
     }
 
     const branchData = {
       ...req.body,
-      tenant: tenant._id,
+      tenant: tenantId,
     };
 
     // Handle geolocation
@@ -167,12 +183,14 @@ router.post('/', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER), tenan
 // @route   PUT /api/branches/:id
 // @desc    Update branch
 // @access  Private/TenantAdmin/HRManager
-router.put('/:id', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER), tenantGuard, async (req, res) => {
+router.put('/:id', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER, ROLES.SUPER_ADMIN), tenantGuard, async (req, res) => {
   try {
-    let branch = await Branch.findOne({
-      _id: req.params.id,
-      tenant: req.user.tenant._id,
-    });
+    const query = { _id: req.params.id };
+    if (req.user.tenant) {
+      query.tenant = req.user.tenant._id;
+    }
+
+    let branch = await Branch.findOne(query);
 
     if (!branch) {
       return res.status(404).json({
@@ -218,17 +236,19 @@ router.put('/:id', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER), ten
 // @route   PUT /api/branches/:id/geofence
 // @desc    Update branch geofence settings
 // @access  Private/TenantAdmin/HRManager
-router.put('/:id/geofence', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER), tenantGuard, [
+router.put('/:id/geofence', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER, ROLES.SUPER_ADMIN), tenantGuard, [
   body('enabled').isBoolean().withMessage('Enabled must be a boolean'),
   body('radius').optional().isNumeric().withMessage('Radius must be a number'),
   body('latitude').optional().isNumeric().withMessage('Latitude must be a number'),
   body('longitude').optional().isNumeric().withMessage('Longitude must be a number'),
 ], validate, async (req, res) => {
   try {
-    const branch = await Branch.findOne({
-      _id: req.params.id,
-      tenant: req.user.tenant._id,
-    });
+    const query = { _id: req.params.id };
+    if (req.user.tenant) {
+      query.tenant = req.user.tenant._id;
+    }
+
+    const branch = await Branch.findOne(query);
 
     if (!branch) {
       return res.status(404).json({
@@ -268,12 +288,14 @@ router.put('/:id/geofence', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANA
 // @route   DELETE /api/branches/:id
 // @desc    Delete branch
 // @access  Private/TenantAdmin
-router.delete('/:id', protect, authorize(ROLES.TENANT_ADMIN), tenantGuard, async (req, res) => {
+router.delete('/:id', protect, authorize(ROLES.TENANT_ADMIN, ROLES.SUPER_ADMIN), tenantGuard, async (req, res) => {
   try {
-    const branch = await Branch.findOne({
-      _id: req.params.id,
-      tenant: req.user.tenant._id,
-    });
+    const query = { _id: req.params.id };
+    if (req.user.tenant) {
+      query.tenant = req.user.tenant._id;
+    }
+
+    const branch = await Branch.findOne(query);
 
     if (!branch) {
       return res.status(404).json({

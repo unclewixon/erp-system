@@ -23,9 +23,15 @@ const validate = (req, res, next) => {
 // @access  Private
 router.get('/', protect, tenantGuard, async (req, res) => {
   try {
-    const { search, branch, parent, isActive } = req.query;
+    const { search, branch, parent, isActive, tenant } = req.query;
 
-    const query = { tenant: req.user.tenant._id };
+    // Super Admin can see all or filter by tenant query param
+    const query = {};
+    if (req.user.tenant) {
+      query.tenant = req.user.tenant._id;
+    } else if (tenant) {
+      query.tenant = tenant;
+    }
 
     if (search) {
       query.$or = [
@@ -80,10 +86,14 @@ router.get('/', protect, tenantGuard, async (req, res) => {
 // @access  Private
 router.get('/tree', protect, tenantGuard, async (req, res) => {
   try {
-    const departments = await Department.find({
-      tenant: req.user.tenant._id,
-      isActive: true,
-    })
+    const query = { isActive: true };
+    if (req.user.tenant) {
+      query.tenant = req.user.tenant._id;
+    } else if (req.query.tenant) {
+      query.tenant = req.query.tenant;
+    }
+
+    const departments = await Department.find(query)
       .populate('head', 'firstName lastName employeeId')
       .sort({ name: 1 });
 
@@ -120,10 +130,12 @@ router.get('/tree', protect, tenantGuard, async (req, res) => {
 // @access  Private
 router.get('/:id', protect, tenantGuard, async (req, res) => {
   try {
-    const department = await Department.findOne({
-      _id: req.params.id,
-      tenant: req.user.tenant._id,
-    })
+    const query = { _id: req.params.id };
+    if (req.user.tenant) {
+      query.tenant = req.user.tenant._id;
+    }
+
+    const department = await Department.findOne(query)
       .populate('head', 'firstName lastName employeeId email')
       .populate('branch', 'name code')
       .populate('parent', 'name code')
@@ -160,14 +172,22 @@ router.get('/:id', protect, tenantGuard, async (req, res) => {
 // @route   POST /api/departments
 // @desc    Create new department
 // @access  Private/TenantAdmin/HRManager
-router.post('/', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER), tenantGuard, [
+router.post('/', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER, ROLES.SUPER_ADMIN), tenantGuard, [
   body('name').notEmpty().withMessage('Department name is required'),
   body('code').notEmpty().withMessage('Department code is required'),
 ], validate, async (req, res) => {
   try {
+    const tenantId = req.user.tenant?._id || req.body.tenant;
+    if (!tenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tenant is required',
+      });
+    }
+
     const departmentData = {
       ...req.body,
-      tenant: req.user.tenant._id,
+      tenant: tenantId,
     };
 
     const department = await Department.create(departmentData);
@@ -200,12 +220,14 @@ router.post('/', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER), tenan
 // @route   PUT /api/departments/:id
 // @desc    Update department
 // @access  Private/TenantAdmin/HRManager
-router.put('/:id', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER), tenantGuard, async (req, res) => {
+router.put('/:id', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER, ROLES.SUPER_ADMIN), tenantGuard, async (req, res) => {
   try {
-    let department = await Department.findOne({
-      _id: req.params.id,
-      tenant: req.user.tenant._id,
-    });
+    const query = { _id: req.params.id };
+    if (req.user.tenant) {
+      query.tenant = req.user.tenant._id;
+    }
+
+    let department = await Department.findOne(query);
 
     if (!department) {
       return res.status(404).json({
@@ -254,12 +276,14 @@ router.put('/:id', protect, authorize(ROLES.TENANT_ADMIN, ROLES.HR_MANAGER), ten
 // @route   DELETE /api/departments/:id
 // @desc    Delete department
 // @access  Private/TenantAdmin
-router.delete('/:id', protect, authorize(ROLES.TENANT_ADMIN), tenantGuard, async (req, res) => {
+router.delete('/:id', protect, authorize(ROLES.TENANT_ADMIN, ROLES.SUPER_ADMIN), tenantGuard, async (req, res) => {
   try {
-    const department = await Department.findOne({
-      _id: req.params.id,
-      tenant: req.user.tenant._id,
-    });
+    const query = { _id: req.params.id };
+    if (req.user.tenant) {
+      query.tenant = req.user.tenant._id;
+    }
+
+    const department = await Department.findOne(query);
 
     if (!department) {
       return res.status(404).json({

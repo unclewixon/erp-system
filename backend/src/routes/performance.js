@@ -14,13 +14,18 @@ router.use(tenantGuard);
 // Get my goals
 router.get('/goals/my', async (req, res) => {
   try {
+    // Super Admin doesn't have employee record - return empty
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const employee = await Employee.findOne({ user: req.user._id });
     if (!employee) {
-      return res.status(404).json({ success: false, message: 'Employee not found' });
+      return res.json({ success: true, data: [] });
     }
 
     const { status, reviewCycle } = req.query;
-    const query = { tenant: req.user.tenant, employee: employee._id };
+    const query = { tenant: req.user.tenant._id, employee: employee._id };
 
     if (status) query.status = status;
     if (reviewCycle) query.reviewCycle = reviewCycle;
@@ -39,18 +44,29 @@ router.get('/goals/my', async (req, res) => {
 // Get team goals (for managers)
 router.get('/goals/team', authorize('super_admin', 'tenant_admin', 'hr_manager', 'department_head', 'team_lead'), async (req, res) => {
   try {
+    const tenantId = req.user.tenant?._id || req.query.tenant;
+
+    // Super Admin sees all if no tenant specified
+    if (!tenantId) {
+      const goals = await Goal.find({})
+        .populate('employee', 'firstName lastName employeeId')
+        .populate('reviewCycle', 'name year')
+        .sort({ dueDate: 1 });
+      return res.json({ success: true, data: goals });
+    }
+
     const employee = await Employee.findOne({ user: req.user._id });
 
     // Get direct reports
     const directReports = await Employee.find({
-      tenant: req.user.tenant,
+      tenant: tenantId,
       reportingTo: employee?._id,
     }).select('_id');
 
     const reportIds = directReports.map(r => r._id);
 
     const goals = await Goal.find({
-      tenant: req.user.tenant,
+      tenant: tenantId,
       employee: { $in: reportIds },
     })
       .populate('employee', 'firstName lastName employeeId')
@@ -66,8 +82,10 @@ router.get('/goals/team', authorize('super_admin', 'tenant_admin', 'hr_manager',
 // Get all goals (HR view)
 router.get('/goals', authorize('super_admin', 'tenant_admin', 'hr_manager', 'hr_officer'), async (req, res) => {
   try {
-    const { employee, status, reviewCycle, department } = req.query;
-    const query = { tenant: req.user.tenant };
+    const { employee, status, reviewCycle, department, tenant } = req.query;
+    const tenantId = req.user.tenant?._id || tenant;
+    const query = {};
+    if (tenantId) query.tenant = tenantId;
 
     if (employee) query.employee = employee;
     if (status) query.status = status;
@@ -91,10 +109,10 @@ router.get('/goals', authorize('super_admin', 'tenant_admin', 'hr_manager', 'hr_
 // Get goal by ID
 router.get('/goals/:id', async (req, res) => {
   try {
-    const goal = await Goal.findOne({
-      _id: req.params.id,
-      tenant: req.user.tenant,
-    })
+    const query = { _id: req.params.id };
+    if (req.user.tenant) query.tenant = req.user.tenant._id;
+
+    const goal = await Goal.findOne(query)
       .populate('employee', 'firstName lastName employeeId')
       .populate('reviewCycle', 'name year type')
       .populate('alignedTo', 'title')
@@ -113,15 +131,17 @@ router.get('/goals/:id', async (req, res) => {
 // Create goal
 router.post('/goals', async (req, res) => {
   try {
-    const employee = await Employee.findOne({ user: req.user._id });
-    if (!employee) {
-      return res.status(404).json({ success: false, message: 'Employee not found' });
+    const tenantId = req.user.tenant?._id || req.body.tenant;
+    if (!tenantId) {
+      return res.status(400).json({ success: false, message: 'Tenant is required' });
     }
+
+    const employee = await Employee.findOne({ user: req.user._id });
 
     const goal = await Goal.create({
       ...req.body,
-      tenant: req.user.tenant,
-      employee: req.body.employee || employee._id,
+      tenant: tenantId,
+      employee: req.body.employee || employee?._id,
       createdBy: req.user._id,
     });
 
@@ -134,8 +154,11 @@ router.post('/goals', async (req, res) => {
 // Update goal
 router.put('/goals/:id', async (req, res) => {
   try {
+    const query = { _id: req.params.id };
+    if (req.user.tenant) query.tenant = req.user.tenant._id;
+
     const goal = await Goal.findOneAndUpdate(
-      { _id: req.params.id, tenant: req.user.tenant },
+      query,
       req.body,
       { new: true, runValidators: true }
     );
@@ -165,8 +188,11 @@ router.put('/goals/:id/progress', async (req, res) => {
       updateData.completedDate = new Date();
     }
 
+    const progressQuery = { _id: req.params.id };
+    if (req.user.tenant) progressQuery.tenant = req.user.tenant._id;
+
     const goal = await Goal.findOneAndUpdate(
-      { _id: req.params.id, tenant: req.user.tenant },
+      progressQuery,
       updateData,
       { new: true }
     );
@@ -184,8 +210,11 @@ router.put('/goals/:id/progress', async (req, res) => {
 // Add comment to goal
 router.post('/goals/:id/comments', async (req, res) => {
   try {
+    const commentQuery = { _id: req.params.id };
+    if (req.user.tenant) commentQuery.tenant = req.user.tenant._id;
+
     const goal = await Goal.findOneAndUpdate(
-      { _id: req.params.id, tenant: req.user.tenant },
+      commentQuery,
       {
         $push: {
           comments: {
@@ -210,10 +239,10 @@ router.post('/goals/:id/comments', async (req, res) => {
 // Delete goal
 router.delete('/goals/:id', async (req, res) => {
   try {
-    const goal = await Goal.findOneAndDelete({
-      _id: req.params.id,
-      tenant: req.user.tenant,
-    });
+    const deleteQuery = { _id: req.params.id };
+    if (req.user.tenant) deleteQuery.tenant = req.user.tenant._id;
+
+    const goal = await Goal.findOneAndDelete(deleteQuery);
 
     if (!goal) {
       return res.status(404).json({ success: false, message: 'Goal not found' });
@@ -230,8 +259,10 @@ router.delete('/goals/:id', async (req, res) => {
 // Get all review cycles
 router.get('/cycles', async (req, res) => {
   try {
-    const { year, status } = req.query;
-    const query = { tenant: req.user.tenant };
+    const { year, status, tenant } = req.query;
+    const tenantId = req.user.tenant?._id || tenant;
+    const query = {};
+    if (tenantId) query.tenant = tenantId;
 
     if (year) query.year = parseInt(year);
     if (status) query.status = status;
@@ -248,10 +279,11 @@ router.get('/cycles', async (req, res) => {
 // Get active review cycle
 router.get('/cycles/active', async (req, res) => {
   try {
-    const cycle = await ReviewCycle.findOne({
-      tenant: req.user.tenant,
-      status: { $in: ['active', 'in_review'] },
-    });
+    const query = { status: { $in: ['active', 'in_review'] } };
+    if (req.user.tenant) query.tenant = req.user.tenant._id;
+    else if (req.query.tenant) query.tenant = req.query.tenant;
+
+    const cycle = await ReviewCycle.findOne(query);
 
     res.json({ success: true, data: cycle });
   } catch (error) {
@@ -366,13 +398,18 @@ router.post('/cycles/:id/launch', authorize('super_admin', 'tenant_admin', 'hr_m
 // Get my review
 router.get('/reviews/my', async (req, res) => {
   try {
+    // Super Admin doesn't have employee record - return empty
+    if (!req.user.tenant) {
+      return res.json({ success: true, data: [] });
+    }
+
     const employee = await Employee.findOne({ user: req.user._id });
     if (!employee) {
-      return res.status(404).json({ success: false, message: 'Employee not found' });
+      return res.json({ success: true, data: [] });
     }
 
     const { reviewCycle } = req.query;
-    const query = { tenant: req.user.tenant, employee: employee._id };
+    const query = { tenant: req.user.tenant._id, employee: employee._id };
 
     if (reviewCycle) query.reviewCycle = reviewCycle;
 
@@ -390,9 +427,11 @@ router.get('/reviews/my', async (req, res) => {
 // Get team reviews (for managers)
 router.get('/reviews/team', authorize('super_admin', 'tenant_admin', 'hr_manager', 'department_head', 'team_lead'), async (req, res) => {
   try {
+    const tenantId = req.user.tenant?._id || req.query.tenant;
     const employee = await Employee.findOne({ user: req.user._id });
 
-    const query = { tenant: req.user.tenant };
+    const query = {};
+    if (tenantId) query.tenant = tenantId;
 
     // If not HR, only show reviews where user is the reviewer
     if (!['super_admin', 'tenant_admin', 'hr_manager'].includes(req.user.role)) {
@@ -415,8 +454,10 @@ router.get('/reviews/team', authorize('super_admin', 'tenant_admin', 'hr_manager
 // Get all reviews (HR view)
 router.get('/reviews', authorize('super_admin', 'tenant_admin', 'hr_manager'), async (req, res) => {
   try {
-    const { reviewCycle, status, department } = req.query;
-    const query = { tenant: req.user.tenant };
+    const { reviewCycle, status, department, tenant } = req.query;
+    const tenantId = req.user.tenant?._id || tenant;
+    const query = {};
+    if (tenantId) query.tenant = tenantId;
 
     if (reviewCycle) query.reviewCycle = reviewCycle;
     if (status) query.status = status;
