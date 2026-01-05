@@ -82,10 +82,7 @@ const getCroppedImg = async (imageSrc, pixelCrop) => {
   canvas.width = pixelCrop.width;
   canvas.height = pixelCrop.height;
 
-  // Fill with white background to prevent black areas when converting to JPEG
-  ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+  // Draw image preserving transparency (no background fill)
   ctx.drawImage(
     image,
     pixelCrop.x,
@@ -98,10 +95,11 @@ const getCroppedImg = async (imageSrc, pixelCrop) => {
     pixelCrop.height
   );
 
+  // Use PNG to preserve transparency
   return new Promise((resolve) => {
     canvas.toBlob((blob) => {
       resolve(blob);
-    }, 'image/jpeg', 0.95);
+    }, 'image/png');
   });
 };
 
@@ -198,7 +196,7 @@ const WebsiteContent = () => {
       const croppedBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
 
       const formData = new FormData();
-      formData.append('image', croppedBlob, 'hero-image.jpg');
+      formData.append('image', croppedBlob, 'hero-image.png');
 
       const token = localStorage.getItem('token');
       const response = await axios.post(`${API_URL}/website-content/upload-image`, formData, {
