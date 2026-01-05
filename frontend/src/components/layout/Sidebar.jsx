@@ -57,7 +57,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { path: '/app/employees', icon: HiOutlineUsers, label: 'Employees' },
     { path: '/app/attendance', icon: HiOutlineClock, label: 'Attendance' },
     { path: '/app/shifts', icon: HiOutlineRefresh, label: 'Shifts' },
-    { path: '/app/swap-shifts', icon: HiOutlineSwitchHorizontal, label: 'Swap Shifts' },
+    { path: '/app/swap-requests', icon: HiOutlineSwitchHorizontal, label: 'Swap Shifts' },
     { path: '/app/my-schedule', icon: HiOutlineCalendar, label: 'My Schedule' },
     { path: '/app/leaves', icon: HiOutlineCalendar, label: 'Leave Management' },
     { path: '/app/payroll', icon: HiOutlineCurrencyDollar, label: 'Payroll' },
